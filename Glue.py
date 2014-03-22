@@ -40,7 +40,10 @@ class GlueCommand(sublime_plugin.TextCommand):
 
     def muterun(self, user_command):
         # create a parsed command line string
-        com_args = shlex.split(user_command)
+        if version_info[0] == 3:
+            com_args = shlex.split(user_command) # use shlex for command line handling in ST3 / Py3
+        else:
+            com_args = user_command.split() # use simple split on whitespace in ST2, Py2.6 does not support unicode in shlex
 
         # exit command
         if com_args[0] == "exit":
@@ -58,7 +61,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                 else:
                     pass
         # glue commands
-        elif com_args[0] == "glue":
+        elif com_args[0] == 'glue':
             if len(com_args) > 1:
                 # Glue Help Command
                 if com_args[1] == "--help" or com_args[1] == "-h" or com_args[1] == "help":
@@ -75,11 +78,31 @@ class GlueCommand(sublime_plugin.TextCommand):
                 t = threading.Thread(target=self.execute_command, args=(command, user_command))
                 t.start() # launch the thread to execute the command
                 self.progress_indicator(t) # provide progress indicator
+                self.print_on_complete(t, user_command) # polls for completion of the thread and prints to editor
             except Exception as e:
                 sys.stderr.write("Glue Plugin Error: unable to run the shell command.")
                 raise e
 
         self.cleanup() # run the cleanup method
+
+    #------------------------------------------------------------------------------
+    # [ print_on_complete method ] - print to editor from main thread when cmd execution complete
+    #  necessary for ST2 (not from ST3...)
+    #------------------------------------------------------------------------------
+    def print_on_complete(self, thread, user_command):
+        if thread.is_alive():
+            sublime.set_timeout(lambda: self.print_on_complete(thread, user_command), 20)
+            return
+        else:
+            # command was successful
+            if self.exitcode == 0:
+                self.view.run_command('glue_writer', {'text': self.stdout, 'command': user_command})
+            # command was not successful (non-zero exit status)
+            else:
+                self.view.run_command('glue_writer', {'text': self.stderr, 'command': user_command})
+
+            # print to stdout as well
+            self.print_response()
 
     #------------------------------------------------------------------------------
     # [ progress_indicator method ] - display progress indicator for long running processes
@@ -93,7 +116,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             if not before:
                 direction = 1
             i += direction
-            self.view.set_status('glue_status_indicator', 'Glue: Running command [%s❖%s]' % (' ' * before, ' ' * after))
+            self.view.set_status('glue_status_indicator', 'Glue: Running command [%s|%s]' % (' ' * before, ' ' * after))
             sublime.set_timeout(lambda: self.progress_indicator(thread, i, direction), 75)
             return
         else:
@@ -103,29 +126,43 @@ class GlueCommand(sublime_plugin.TextCommand):
     #------------------------------------------------------------------------------
     # [ execute_command method ] - execute a system command
     #   run in a separate thread from muterun() method above
+    #   assigns stdout stderr and exitcode in instance attributes
     #------------------------------------------------------------------------------
     def execute_command(self, command, user_command):
-        try:
-            # execute the system command
-            response = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-            # acquire thread lock on attribute data
-            with self.attr_lock:
-                self.exitcode = 0
-                self.stdout = response.decode('utf-8')
-            self.print_response()
-            self.view.run_command('glue_writer', {'text': self.stdout, 'command': user_command})
-        except subprocess.CalledProcessError as cpe:
-            # acquire thread lock on the attribute data
-            with self.attr_lock:
-                self.stderr = cpe.output.decode('utf-8')
-                if cpe.returncode:
-                    self.exitcode = cpe.returncode
-                else:
-                    self.exitcode = 1
-            self.print_response()
-            self.view.run_command('glue_writer', {'text': self.stderr, 'command': user_command})
-        except Exception as e:
-            raise e
+        # Python 3 version = Sublime Text 3 version
+        if version_info[0] == 3:
+            try:
+                # execute the system command
+                response = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+                # acquire thread lock on attribute data
+                with self.attr_lock:
+                    self.exitcode = 0
+                    self.stdout = response.decode('utf-8')
+                # self.view.run_command('glue_writer', {'text': self.stdout, 'command': user_command})
+            except subprocess.CalledProcessError as cpe:
+                # acquire thread lock on the attribute data
+                with self.attr_lock:
+                    self.stderr = cpe.output.decode('utf-8')
+                    if cpe.returncode:
+                        self.exitcode = cpe.returncode
+                    else:
+                        self.exitcode = 1
+                # self.view.run_command('glue_writer', {'text': self.stderr, 'command': user_command})
+            except Exception as e:
+                raise e
+        # Python 2 version = Sublime Text 2 version
+        else:
+            try:
+                response = subprocess.Popen(command, shell=True,
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE)
+                stdout, stderr = response.communicate()
+                with self.attr_lock: # use the attribute lock (separate thread)
+                    self.stdout = stdout.decode('utf-8')
+                    self.stderr = stderr.decode('utf-8')
+                    self.exitcode = response.returncode
+            except Exception as e:
+                raise e
 
     #------------------------------------------------------------------------------
     # [ print_response method ] - print a string to the stdout on ST console
