@@ -1,0 +1,5 @@
+[
+	{"caption": "-", "id":"glue-start-separator"},
+	{"caption": "Open Glue Terminal", "id": "glue-open", "command": "glue_sidebar_opener", "args": {"paths": []}},
+	{"caption": "-", "id": "glue-end-separator"}
+]
