@@ -9,30 +9,31 @@ import sys
 import os
 import threading
 import shlex
-import json
-import time
 
 class GlueCommand(sublime_plugin.TextCommand):
     def __init__(self, *args, **kwargs):
         self.settings = sublime.load_settings('Glue.sublime-settings')
-        self.dir_json_path = os.path.join('settings', 'directories.json')
         self.stdout = ""
         self.stderr = ""
         self.exitcode = 1
-        self.py2 = (version_info[0] == 2)
-        self.userpath = self.settings.get('userpath')
-        self.ps1 = self.settings.get('ps1')
-        self.current_dirpath = self.settings.get('working_directory')
+        self.userpath = self.settings.get('glue_userpath')
+        self.ps1 = self.settings.get('glue_ps1')
+        self.current_dirpath = self.settings.get('glue_working_directory')
         self.current_filepath = ""
         self.attr_lock = threading.Lock() # thread lock for attribute reads/writes
         sublime_plugin.TextCommand.__init__(self, *args, **kwargs)
 
     def run(self, edit):
-        # check the settings to see if it is set
+        # check the settings to see if working directory is set
         if len(self.current_dirpath) == 0:
-            self.current_filepath = self.view.file_name()
-            self.current_dirpath = os.path.dirname(self.current_filepath)
-        os.chdir(self.current_dirpath)
+            self.current_filepath = self.view.file_name() # if file is not yet saved, path is None
+            if self.current_filepath:
+                self.current_dirpath = os.path.dirname(self.current_filepath)
+            else:
+                pass
+                # sublime.error_message("Glue : Please save this buffer as 'terminal.glue' in the working directory where you would like to launch Glue, then try again.")
+        if self.current_dirpath:
+            os.chdir(self.current_dirpath)
         self.view.window().show_input_panel(self.ps1 + ' ', '', self.muterun, None, None)
 
     def cleanup(self):
@@ -54,12 +55,15 @@ class GlueCommand(sublime_plugin.TextCommand):
                 if os.path.exists(change_path) and os.path.isdir(change_path):
                     os.chdir(change_path)
                     directory_change_abspath = os.getcwd()
+                    dir_change_text = directory_change_abspath + '\n'
                     directory_change_cmd = "cd " + change_path
                     self.current_dirpath = directory_change_abspath
                     self.settings.set('working_directory', directory_change_abspath)
-                    self.view.run_command('glue_writer', {'text': directory_change_abspath, 'command': directory_change_cmd, 'exit': False})
+                    self.view.run_command('glue_writer', {'text': dir_change_text, 'command': directory_change_cmd, 'exit': False})
                 else:
-                    pass
+                    directory_change_cmd = "cd " + change_path
+                    dirchange_error_message = "Directory path '" + change_path + "' does not exist\n"
+                    self.view.run_command('glue_writer', {'text': dirchange_error_message, 'command': directory_change_cmd, 'exit': False})
         # glue commands
         elif com_args[0] == 'glue':
             if len(com_args) > 1:
@@ -71,10 +75,20 @@ class GlueCommand(sublime_plugin.TextCommand):
                 # Glue clear command
                 elif com_args[1] == "clear":
                     self.view.run_command('glue_clear_editor')
+                    # keeps the input panel open for more commands
+                    self.view.run_command('glue')
+                elif com_args[1] == "test":
+                    glue_command = com_args[0] + " " + com_args[1] + " " + com_args[2]
+                    self.view.run_command('glue_writer', {'text': os.path.realpath(self.get_path(com_args[2])), 'command': glue_command, 'exit': False})
+                    self.view.run_command('glue_writer', {'text': self.get_path(com_args[2]), 'command': glue_command, 'exit': False})
         # execute the system command that was entered
         else:
             try:
-                command = self.userpath + user_command
+                if len(com_args) > 0:
+                    arguments = ' '.join(com_args[1:])
+                else:
+                    arguments = ''
+                command = os.path.join(self.get_path(com_args[0]), com_args[0]) + " " + arguments
                 t = threading.Thread(target=self.execute_command, args=(command, user_command))
                 t.start() # launch the thread to execute the command
                 self.progress_indicator(t) # provide progress indicator
@@ -84,6 +98,28 @@ class GlueCommand(sublime_plugin.TextCommand):
                 raise e
 
         self.cleanup() # run the cleanup method
+
+    #------------------------------------------------------------------------------
+    # [ get_path method ] - find the correct path to the executable from the user's PATH setting
+    #------------------------------------------------------------------------------
+    def get_path(self, executable):
+        if ':' in self.userpath:
+            paths = self.userpath.split(':')
+            for path in paths:
+                if os.path.isfile(os.path.join(path, executable)):
+                    return path
+            # if the method did not return with found path, just return empty path and keep fingers crossed...
+            return ''
+        elif ';' in self.userpath:
+            paths = self.userpath.split(';')
+            for path in paths:
+                if os.path.isfile(os.path.join(path, executable)):
+                    return path
+            # if the method did not return with found path, just return empty path and keep fingers crossed...
+            return ''
+        else:
+            # there was one path in the setting, so return it as the proper path to executable
+            return self.userpath
 
     #------------------------------------------------------------------------------
     # [ print_on_complete method ] - print to editor from main thread when cmd execution complete
@@ -182,9 +218,9 @@ class GlueCommand(sublime_plugin.TextCommand):
 class GlueWriterCommand(sublime_plugin.TextCommand):
     def __init__(self, *args, **kwargs):
         self.settings = sublime.load_settings('Glue.sublime-settings')
-        self.ps1 = self.settings.get('ps1')
-        self.show_path = self.settings.get('display_path')
-        self.exit_message = self.settings.get('exit_message')
+        self.ps1 = self.settings.get('glue_ps1')
+        self.show_path = self.settings.get('glue_display_path')
+        self.exit_message = self.settings.get('glue_exit_message')
         sublime_plugin.TextCommand.__init__(self, *args, **kwargs)
 
     def run(self, edit, text="", command="", exit=False):
@@ -218,32 +254,7 @@ class GlueClearEditorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         the_viewer = sublime.Region(0, self.view.size())
         self.view.erase(edit, the_viewer)
-        # keeps the input panel open for more commands
-        self.view.run_command('glue')
 
-#------------------------------------------------------------------------------
-# [ FileReader class ] - read local files
-#------------------------------------------------------------------------------
-class FileReader:
-    def __init__(self, filepath):
-        self.filepath = filepath
-
-    def read_utf8(self):
-        try:
-            import codecs
-            f = codecs.open(self.filepath, encoding='utf_8', mode='r')
-        except IOError as ioe:
-            if DEBUG_FLAG:
-                sys.stderr.write("Glue Plugin Error: Unable to open file for read with read_utf8() method.")
-            raise ioe
-        try:
-            return f.read()
-        except Exception as e:
-            if DEBUG_FLAG:
-                sys.stderr.write("Glue Plugin Error: Unable to read the file with UTF-8 encoding using the read_utf8() method.")
-            raise e
-        finally:
-            f.close()
 
 #------------------------------------------------------------------------------
 # [ get_help_text function ] - returns the user help string
@@ -258,7 +269,7 @@ def get_help_text():
 
 Copyright 2014 Christopher Simpkins | MIT License
 
-Glue is a quasi-terminal for the Sublime Text editor.
+Glue joins your shell and Sublime Text.
 
 Usage
 
