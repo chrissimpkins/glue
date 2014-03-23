@@ -29,15 +29,20 @@ class GlueCommand(sublime_plugin.TextCommand):
             self.current_filepath = self.view.file_name() # if file is not yet saved, path is None
             if self.current_filepath:
                 self.current_dirpath = os.path.dirname(self.current_filepath)
-            else:
-                pass
                 # sublime.error_message("Glue : Please save this buffer as 'terminal.glue' in the working directory where you would like to launch Glue, then try again.")
         if self.current_dirpath:
             os.chdir(self.current_dirpath)
+        else:
+            ## handling when new buffer is launched and not saved to current project/directory
+            ## TODO: allow user to specify start directory on fresh buffer launch
+            self.current_dirpath = os.path.expanduser('~') # if open a buffer that is not saved, begin in home directory
+            self.view.set_name('NEW.glue')
+            os.chdir(self.current_dirpath)
+            sublime.status_message('Glue: Current directory: ' + self.current_dirpath)
         self.view.window().show_input_panel(self.ps1 + ' ', '', self.muterun, None, None)
 
     def cleanup(self):
-        pass
+        self.current_dirpath = "" # clear the saved working directory path
 
     def muterun(self, user_command):
         # create a parsed command line string
@@ -48,6 +53,7 @@ class GlueCommand(sublime_plugin.TextCommand):
 
         # exit command
         if com_args[0] == "exit":
+            self.cleanup() # run the cleanup method
             self.view.run_command('glue_writer', {'text': '', 'command': '', 'exit': True})
         elif com_args[0] == "cd":
             if len(com_args) > 1:
@@ -78,9 +84,12 @@ class GlueCommand(sublime_plugin.TextCommand):
                     # keeps the input panel open for more commands
                     self.view.run_command('glue')
                 elif com_args[1] == "test":
-                    glue_command = com_args[0] + " " + com_args[1] + " " + com_args[2]
-                    self.view.run_command('glue_writer', {'text': os.path.realpath(self.get_path(com_args[2])), 'command': glue_command, 'exit': False})
-                    self.view.run_command('glue_writer', {'text': self.get_path(com_args[2]), 'command': glue_command, 'exit': False})
+                    glue_command = ' '.join(com_args)
+                    # current_proj = str(dir(self.view.window()))
+                    # current_proj = str(self.view.window().project_file_name())
+                    current_proj = str(dir(self.view))
+                    self.view.run_command('glue_writer', {'text': self.current_dirpath, 'command': glue_command, 'exit': False})
+                    self.view.run_command('glue_writer', {'text': current_proj, 'command': glue_command, 'exit': False})
                 else:
                     glue_command = ' '.join(com_args)
                     bad_cmd_error_msg = "Glue does not support that command.  Please try again.\n"
@@ -92,6 +101,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                     arguments = ' '.join(com_args[1:])
                 else:
                     arguments = ''
+
                 command = os.path.join(self.get_path(com_args[0]), com_args[0]) + " " + arguments
                 t = threading.Thread(target=self.execute_command, args=(command, user_command))
                 t.start() # launch the thread to execute the command
@@ -101,8 +111,6 @@ class GlueCommand(sublime_plugin.TextCommand):
                 sys.stderr.write("Glue Plugin Error: unable to run the shell command.")
                 raise e
 
-        self.cleanup() # run the cleanup method
-
     #------------------------------------------------------------------------------
     # [ get_path method ] - find the correct path to the executable from the user's PATH setting
     #------------------------------------------------------------------------------
@@ -110,15 +118,21 @@ class GlueCommand(sublime_plugin.TextCommand):
         if ':' in self.userpath:
             paths = self.userpath.split(':')
             for path in paths:
-                if os.path.isfile(os.path.join(path, executable)):
+                test_path = os.path.join(path, executable)
+                if os.path.isfile(test_path):
                     return path
+                elif os.path.islink(test_path):
+                    return os.path.dirname(os.path.realpath(test_path))
             # if the method did not return with found path, just return empty path and keep fingers crossed...
             return ''
         elif ';' in self.userpath:
             paths = self.userpath.split(';')
             for path in paths:
-                if os.path.isfile(os.path.join(path, executable)):
+                test_path = os.path.join(path, executable)
+                if os.path.isfile(test_path):
                     return path
+                elif os.path.islink(test_path):
+                    return os.path.dirname(os.path.realpath(test_path))
             # if the method did not return with found path, just return empty path and keep fingers crossed...
             return ''
         else:
