@@ -14,6 +14,7 @@ else:
 class GlueSidebarOpenerCommand(sublime_plugin.WindowCommand):
     def run(self, paths = []):
         path = paths[0] # only use the first of the paths in the passed argument (prevents multiple terminals from opening)
+        print(path)
         if os.path.exists(path) and os.path.isfile(path) and path.endswith('.glue'):
             self.erase_existing_glue_file(path) # clear the terminal text in .glue files
             self.open_the_file(path)
@@ -34,9 +35,10 @@ class GlueSidebarOpenerCommand(sublime_plugin.WindowCommand):
                 self.window.active_view().run_command('glue')
             else:
                 # write a terminal.glue file in the selected directory
-                FileWriter('terminal.glue').write_utf8(" ")
-                if os.path.exists('terminal.glue'):
-                    self.open_the_file('terminal.glue')
+                new_glue_path = os.path.join(path, 'terminal.glue')
+                FileWriter(new_glue_path).write_utf8(" ")
+                if os.path.exists(new_glue_path):
+                    self.open_the_file(new_glue_path)
                     self.window.active_view().run_command('glue')
         else:
             sublime.error_message("Glue Plugin Error : Glue was not able to launch the terminal from the selected path.  Try opening the file in your editor and then launching Glue from the Command Palette.")
