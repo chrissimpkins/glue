@@ -81,6 +81,10 @@ class GlueCommand(sublime_plugin.TextCommand):
                     glue_command = com_args[0] + " " + com_args[1] + " " + com_args[2]
                     self.view.run_command('glue_writer', {'text': os.path.realpath(self.get_path(com_args[2])), 'command': glue_command, 'exit': False})
                     self.view.run_command('glue_writer', {'text': self.get_path(com_args[2]), 'command': glue_command, 'exit': False})
+                else:
+                    glue_command = ' '.join(com_args)
+                    bad_cmd_error_msg = "Glue does not support that command.  Please try again.\n"
+                    self.view.run_command('glue_writer', {'text': bad_cmd_error_msg, 'command': glue_command, 'exit': False})
         # execute the system command that was entered
         else:
             try:
