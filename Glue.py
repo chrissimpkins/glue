@@ -10,6 +10,11 @@ import os
 import threading
 import shlex
 
+if version_info[0] == 3:
+    from .GlueIO import FileReader
+else:
+    from GlueIO import FileReader
+
 class GlueCommand(sublime_plugin.TextCommand):
     def __init__(self, *args, **kwargs):
         self.settings = sublime.load_settings('Glue.sublime-settings')
@@ -72,28 +77,76 @@ class GlueCommand(sublime_plugin.TextCommand):
                     self.view.run_command('glue_writer', {'text': dirchange_error_message, 'command': directory_change_cmd, 'exit': False})
         # glue commands
         elif com_args[0] == 'glue':
+            glue_command = ' '.join(com_args)
             if len(com_args) > 1:
-                # Glue Help Command
+                # HELP Command
                 if com_args[1] == "--help" or com_args[1] == "-h" or com_args[1] == "help":
                     help_text = get_help_text()
-                    glue_command = com_args[0] + " " + com_args[1]
                     self.view.run_command('glue_writer', {'text': help_text, 'command': glue_command, 'exit': False})
-                # Glue clear command
+                # CLEAR command
                 elif com_args[1] == "clear":
                     self.view.run_command('glue_clear_editor')
                     # keeps the input panel open for more commands
                     self.view.run_command('glue')
+                # OPEN command
+                elif com_args[1] == "open":
+                    if len(com_args) > 2:
+                        self.view.window().run_command('glue_file_opener', {'current_dir': self.current_dirpath, 'file_list': com_args[2:]})
+                        fileopen_text = "glue open command completed\n"
+                        self.view.run_command('glue_writer', {'text': fileopen_text, 'command': glue_command, 'exit': False})
+                    else:
+                        missing_file_error_msg = "Please enter at least one filepath after the open command.\n"
+                        self.view.run_command('glue_writer', {'text': missing_file_error_msg, 'command': glue_command, 'exit': False})
+                # WCO command
+                elif com_args[1] == "wco":
+                    if len(com_args) > 2:
+                        self.view.window().run_command('glue_file_wildcard_opener', {'current_dir': self.current_dirpath, 'match_pattern': com_args[2]})
+                        fileopen_text = "glue wco command completed\n"
+                        self.view.run_command('glue_writer', {'text': fileopen_text, 'command': glue_command, 'exit': False})
+                    else:
+                        missing_file_error_msg = "Please enter at least one filepath after the open command.\n"
+                        self.view.run_command('glue_writer', {'text': missing_file_error_msg, 'command': glue_command, 'exit': False})
                 elif com_args[1] == "test":
-                    glue_command = ' '.join(com_args)
+                    pass
                     # current_proj = str(dir(self.view.window()))
                     # current_proj = str(self.view.window().project_file_name())
-                    current_proj = str(dir(self.view))
-                    self.view.run_command('glue_writer', {'text': self.current_dirpath, 'command': glue_command, 'exit': False})
-                    self.view.run_command('glue_writer', {'text': current_proj, 'command': glue_command, 'exit': False})
+                    # self.view.run_command('install_package')
+                    # self.view.run_command('glue_writer', {'text': current_proj, 'command': glue_command, 'exit': False})
                 else:
-                    glue_command = ' '.join(com_args)
-                    bad_cmd_error_msg = "Glue does not support that command.  Please try again.\n"
-                    self.view.run_command('glue_writer', {'text': bad_cmd_error_msg, 'command': glue_command, 'exit': False})
+                    # USER COMMANDS
+                    if len(com_args) > 1:
+                        found_usercom = False
+                        file_name = com_args[1] + '.gluc'
+                        found_path = ''
+                        uc_file_path = os.path.join('glue', file_name)
+                        for i in range(6):
+                            if not self.is_file_at_this_level(uc_file_path):
+                                os.chdir(os.pardir)
+                            else:
+                                found_usercom = True
+                                found_path = os.path.join(os.getcwd(), uc_file_path)
+                                break
+                        os.chdir(self.current_dirpath)
+                        # Read the file to obtain the command
+                        if found_usercom:
+                            fr = FileReader(found_path)
+                            user_command = fr.read_utf8()
+                            # if arguments from command, add those in location indicated by the file
+                            if len(com_args) > 2:
+                                # arguments were included on the command line, pass them to the user command
+                                arguments =  ' '.join(com_args[2:])
+                            else:
+                                # no additional arguments were included so pass empty string if there is an {{args}} tag
+                                arguments = ''
+                            user_command = user_command.replace('{{args}}', arguments)
+                            self.muterun(user_command)
+                        # Didn't find a glue command, provide error message
+                        else:
+                            bad_cmd_error_msg = "Glue could not identify that command.  Please try again.\n"
+                            self.view.run_command('glue_writer', {'text': bad_cmd_error_msg, 'command': glue_command, 'exit': False})
+            else:
+                missing_arg_error_msg = "Glue requires an argument.  Please use 'glue help' for for more information.\n"
+                self.view.run_command('glue_writer', {'text': missing_arg_error_msg, 'command': glue_command, 'exit': False})
         # execute the system command that was entered
         else:
             try:
@@ -110,6 +163,15 @@ class GlueCommand(sublime_plugin.TextCommand):
             except Exception as e:
                 sys.stderr.write("Glue Plugin Error: unable to run the shell command.")
                 raise e
+
+    #------------------------------------------------------------------------------
+    # [ is_file_at_this_level ] - returns boolean for presence of filepath
+    #------------------------------------------------------------------------------
+    def is_file_at_this_level(self, filepath):
+        if os.path.exists(filepath) and os.path.isfile(filepath):
+            return True
+        else:
+            return False
 
     #------------------------------------------------------------------------------
     # [ get_path method ] - find the correct path to the executable from the user's PATH setting
@@ -287,27 +349,40 @@ def get_help_text():
 
 Copyright 2014 Christopher Simpkins | MIT License
 
-Glue joins your shell and Sublime Text.
+Glue joins your shell to Sublime Text in quasi-perfect harmony.
 
 Usage
 
   <command> [option(s)]
 
-  Enter a command in the input panel at the bottom of your editor using the same syntax that you use in your terminal.  The standard output stream from the executable is printed in the active view of your editor after it returns.
+  Enter a system command in the input panel at the bottom of your editor using the same syntax that you use in your terminal.  The standard output stream from the executable is printed in the active view of your editor after it returns.
 
   To quit Glue, submit the command 'exit'.
 
 Commands
   Glue provides the following additional commands:
 
-  glue clear         Clear the text in the Glue view
-  glue help          Glue help
+  glue clear               Clear the text in the Glue view
+  glue help                Glue help
+  glue open <path>         Open a file at <path> in the editor. Accepts multiple <path>
+  glue wco <pattern>       Open file(s) with wildcard <pattern> in the editor
+
+User Commands
+  Create a directory named `glue` in the top level directory of your project and then add one or more files with the path `<PROJECT>/glue/<commandname>.gluc` in the directory.  Add a one-line command to the top line of the file and save it as plain text. Include one or more optional {{args}} tags anywhere in the command string in the file where you would like to insert any additional arguments that you include on the command line.
+
+  Launch Glue and run your command with the following syntax:
+
+     glue <commandname> [args]
+
+  Your command is executed from your current working directory.
 
 Navigation
-  The working directory is initially set to the directory containing the buffer where you use Glue.  Change directories with the 'cd' command:
+  The working directory is initially set to the directory containing the buffer where you use Glue if you launch it with the sidebar menu item.  Change directories with the 'cd' command:
 
   cd <directory path>        Make `directory path` the working directory
   cd ..                      Make parent directory the working directory
+
+  Note that if you are using a buffer that is not saved as the view for Glue (e.g. launching with the Command Palette), your working directory defaults to your user directory.
 
 Issues
   Please submit bug reports on the GitHub repository @ https://github.com/chrissimpkins/glue/issues
