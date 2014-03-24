@@ -14,7 +14,6 @@ else:
 class GlueSidebarOpenerCommand(sublime_plugin.WindowCommand):
     def run(self, paths = []):
         path = paths[0] # only use the first of the paths in the passed argument (prevents multiple terminals from opening)
-        print(path)
         if os.path.exists(path) and os.path.isfile(path) and path.endswith('.glue'):
             self.erase_existing_glue_file(path) # clear the terminal text in .glue files
             self.open_the_file(path)
