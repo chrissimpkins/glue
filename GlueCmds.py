@@ -6,6 +6,9 @@ import sublime_plugin
 import os
 from glob import glob
 
+#------------------------------------------------------------------------------
+# [ GlueFileOpenerCommand class ] - executed from glue open command
+#------------------------------------------------------------------------------
 class GlueFileOpenerCommand(sublime_plugin.WindowCommand):
     def run(self, paths = [], current_dir="", file_list=[]):
         if len(file_list) > 1:
@@ -20,6 +23,9 @@ class GlueFileOpenerCommand(sublime_plugin.WindowCommand):
         if os.path.exists(file_path) and os.path.isfile(file_path):
             self.window.open_file(file_path)
 
+#------------------------------------------------------------------------------
+# [ GlueFileWildcardOpenerCommand class ] - executed from glue wco command
+#------------------------------------------------------------------------------
 class GlueFileWildcardOpenerCommand(sublime_plugin.WindowCommand):
     def run(self, paths = [], current_dir="", match_pattern=""):
         if len(current_dir) > 0 and len(match_pattern) > 0:
