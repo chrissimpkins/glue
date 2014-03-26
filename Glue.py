@@ -9,10 +9,14 @@ import sys
 import os
 import threading
 import shlex
+import json
+import traceback
 
 if version_info[0] == 3:
+    import io
     from .GlueIO import FileReader
 else:
+    import StringIO
     from GlueIO import FileReader
 
 class GlueCommand(sublime_plugin.TextCommand):
@@ -23,32 +27,132 @@ class GlueCommand(sublime_plugin.TextCommand):
         self.exitcode = 1
         self.userpath = self.settings.get('glue_userpath')
         self.ps1 = self.settings.get('glue_ps1')
+        self.start_dirpath = ""
         self.current_dirpath = self.settings.get('glue_working_directory')
         self.current_filepath = ""
         self.attr_lock = threading.Lock() # thread lock for attribute reads/writes
         sublime_plugin.TextCommand.__init__(self, *args, **kwargs)
 
+    #------------------------------------------------------------------------------
+    # [ run method ] - plugin start method
+    #------------------------------------------------------------------------------
     def run(self, edit):
-        # check the settings to see if working directory is set
-        if len(self.current_dirpath) == 0:
-            self.current_filepath = self.view.file_name() # if file is not yet saved, path is None
-            if self.current_filepath:
-                self.current_dirpath = os.path.dirname(self.current_filepath)
-                # sublime.error_message("Glue : Please save this buffer as 'terminal.glue' in the working directory where you would like to launch Glue, then try again.")
-        if self.current_dirpath:
-            os.chdir(self.current_dirpath)
-        else:
-            ## handling when new buffer is launched and not saved to current project/directory
-            ## TODO: allow user to specify start directory on fresh buffer launch
-            self.current_dirpath = os.path.expanduser('~') # if open a buffer that is not saved, begin in home directory
-            self.view.set_name('NEW.glue')
-            os.chdir(self.current_dirpath)
-            sublime.status_message('Glue: Current directory: ' + self.current_dirpath)
-        self.view.window().show_input_panel(self.ps1 + ' ', '', self.muterun, None, None)
+        try:
+            #------------------------------------------------------------------------------
+            # Establish Current Working Directory
+            # 1. check for current_dirpath attribute (empty string by default)
+            # 2. if not set, set it
+            # 3. if file does not exist, make it in current directory if detected, User dir if not
+            # 4. if directory exists after above, then chdir into it to establish as working directory
+            #------------------------------------------------------------------------------
+            buffer = 0 # flag that indicates use of buffer with unsaved terminal.glue file
+            create_file = 0 # flag that indicates a new file should be generated to run the terminal view
+            self.current_filepath = self.view.file_name() # file path if file exists and is saved, otherwise None
 
+            # check the settings to see if start directory is set
+            if len(self.start_dirpath) == 0:
+                # if the buffer has been saved and the filepath exists
+                if self.current_filepath:
+                    # set start directory with the file user has open
+                    self.start_dirpath = os.path.dirname(self.current_filepath)
+                else:
+                    # set current directory with User directory
+                    self.start_dirpath = os.path.expanduser('~')
+                    buffer = 1 # indicate that user is attempting to use an unsaved buffer, do not create new .glue file
+
+            if len(self.current_dirpath) == 0:
+                self.current_dirpath = self.start_dirpath # if it hasn't been set yet, set it to the same directory as the start dir
+                sublime.status_message('Glue: Current directory: ' + self.current_dirpath) # notify user of CWD
+
+            # confirm that current directory exists and chdir into it
+            if os.path.isdir(self.current_dirpath):
+                os.chdir(self.current_dirpath) # make it the current working directory
+            else:
+                bad_dir_error_msg = "Glue Plugin Error: Unable to establish your working directory. Please confirm your settings if you changed the default directory. If this is not the problem, please report this as a new issue on the GitHub repository."
+                sublime.error_message(bad_dir_error_msg) # launch an error dialog
+
+            #------------------------------------------------------------------------------
+            # Establish current buffer / file
+            # 1. if using unsaved buffer (i.e. buffer = 1), set current path to <user-dir>/NEW.glue
+            #------------------------------------------------------------------------------
+            if buffer:
+                self.current_filepath = os.path.join(self.start_dirpath, 'NEW.glue')
+            else:
+                if self.current_filepath: # if it is set
+                    if self.current_filepath.endswith('.glue'):
+                        pass # a .glue file is being used, do nothing because this is desired behavior
+                    else:
+                        self.current_filepath = os.path.join(self.start_dirpath, 'terminal.glue')
+                        create_file = 1 # switch the create file flag so that a new file is generated with this path
+                else: # otherwise the currentdir is set and need to establish the current filepath
+                    self.current_filepath = os.path.join(self.start_dirpath, 'terminal.glue')
+                    create_file = 0
+
+            #------------------------------------------------------------------------------
+            # Establish Active View as Appropriate File
+            # 1. handle buffer view (non-saved file) || buffer flag = 1
+            # 2. handle write new file view || create_file flag = 1
+            #------------------------------------------------------------------------------
+            if self.current_filepath.endswith('.glue') and (self.current_filepath == self.view.file_name()):
+                pass # do nothing, the active view is the appropriate .glue terminal file
+            else:
+                if buffer:
+                    self.view.set_name('NEW.glue')
+                elif create_file:
+                    # confirm that there is not a .glue file in the current directory, open it if there is
+                    gluefile_test_list = [name for name in os.listdir(self.start_dirpath) if name.endswith('.glue')]
+                    if len(gluefile_test_list) > 0: # if there is a .glue terminal file, open it
+                        self.view.window().open_file(os.path.join(self.start_dirpath, gluefile_test_list[0]))
+                    else: # otherwise, create a new one
+                        self.view.window().new_file() # create a new file at the file path established above
+                        self.view.set_name('NEW.glue')
+            #------------------------------------------------------------------------------
+            # Launch the Input Panel for User Input - off to the races...
+            #------------------------------------------------------------------------------
+            self.view.window().show_input_panel(self.ps1 + ' ', '', self.muterun_runner, None, None)
+        except Exception as e:
+            self.exception_handler()
+
+    #------------------------------------------------------------------------------
+    # [ cleanup method ] - odds and ends before close of plugin when 'exit' called
+    #------------------------------------------------------------------------------
     def cleanup(self):
         self.current_dirpath = "" # clear the saved working directory path
+        self.settings.set('glue_working_directory', '') # clear the saved directory path
 
+    #------------------------------------------------------------------------------
+    # [ exception_handler ] - print stack trace for raised exceptions from Glue plugin in the editor view
+    #------------------------------------------------------------------------------
+    def exception_handler(self, user_command=''):
+        glue_exc_message = "Glue encountered an error.  Please report this as a new issue on the GitHub repository.  Here is the stack trace:"
+        if version_info[0] == 2:
+            exc_string = StringIO.StringIO()
+        else:
+            exc_string = io.StringIO()
+        # push the stack trace stream to the StringIO
+        traceback.print_exc(file=exc_string)
+        # get the string value of the stack trace string and assign to variable
+        stack_trace = exc_string.getvalue()
+        # create the user message
+        user_exc_message = glue_exc_message + '\n\n' + stack_trace
+        # write
+        self.view.run_command('glue_writer', {'text': user_exc_message, 'command': user_command, 'exit': False})
+        # close the StringIO stream
+        exc_string.close()
+
+    #------------------------------------------------------------------------------
+    # [ muterun_runner ] - runner method for the main execution method
+    #   here simply to wrap it in an exception handler
+    #------------------------------------------------------------------------------
+    def muterun_runner(self, user_command):
+        try:
+            self.muterun(user_command)
+        except Exception as e:
+            self.exception_handler(user_command)
+
+    #------------------------------------------------------------------------------
+    # [ muterun method ] - parse command + runner for execution of system command
+    #------------------------------------------------------------------------------
     def muterun(self, user_command):
         # create a parsed command line string
         if version_info[0] == 3:
@@ -56,10 +160,11 @@ class GlueCommand(sublime_plugin.TextCommand):
         else:
             com_args = user_command.split() # use simple split on whitespace in ST2, Py2.6 does not support unicode in shlex
 
-        # exit command
+        # EXIT command
         if com_args[0] == "exit":
             self.cleanup() # run the cleanup method
             self.view.run_command('glue_writer', {'text': '', 'command': '', 'exit': True})
+        # CD command
         elif com_args[0] == "cd":
             if len(com_args) > 1:
                 change_path = com_args[1]
@@ -69,13 +174,17 @@ class GlueCommand(sublime_plugin.TextCommand):
                     dir_change_text = directory_change_abspath + '\n'
                     directory_change_cmd = "cd " + change_path
                     self.current_dirpath = directory_change_abspath
-                    self.settings.set('working_directory', directory_change_abspath)
+                    self.settings.set('glue_working_directory', directory_change_abspath)
+                    sublime.status_message('Glue: Current directory: ' + directory_change_abspath) # notify user of CWD
                     self.view.run_command('glue_writer', {'text': dir_change_text, 'command': directory_change_cmd, 'exit': False})
                 else:
                     directory_change_cmd = "cd " + change_path
                     dirchange_error_message = "Directory path '" + change_path + "' does not exist\n"
                     self.view.run_command('glue_writer', {'text': dirchange_error_message, 'command': directory_change_cmd, 'exit': False})
-        # glue commands
+            else:
+                dirchange_error_message = "Please enter a path following the 'cd' command"
+                self.view.run_command('glue_writer', {'text': dirchange_error_message, 'command': 'cd', 'exit': False})
+        # GLUE commands
         elif com_args[0] == 'glue':
             glue_command = ' '.join(com_args)
             if len(com_args) > 1:
@@ -88,6 +197,32 @@ class GlueCommand(sublime_plugin.TextCommand):
                     self.view.run_command('glue_clear_editor')
                     # keeps the input panel open for more commands
                     self.view.run_command('glue')
+                # USER command
+                elif com_args[1] == "user":
+                    uc_file_path = os.path.join(sublime.packages_path(), 'Glue-Commands', 'glue.json')
+                    if self.is_file_here(uc_file_path):
+                        fr = FileReader(uc_file_path)
+                        user_json = fr.read_utf8()
+                        usercom_dict = json.loads(user_json)
+                        if len(usercom_dict) > 0:
+                            if len(usercom_dict) == 1:
+                                com_number_string = 'command'
+                            else:
+                                com_number_string = 'commands'
+                            number_com_msg = "You have extended Glue with " + str(len(usercom_dict)) + " additional " + com_number_string + ":\n\n"
+                            com_list = []
+                            for key, value in self.xitems(usercom_dict):
+                                com_string = key + " : " + value
+                                com_list.append(com_string)
+                            com_string = '\n'.join(sorted(com_list))
+                            com_string = number_com_msg + com_string + '\n'
+                            self.view.run_command('glue_writer', {'text': com_string, 'command': glue_command, 'exit': False})
+                        else:
+                            user_error_msg = "Your glue.json file does not contain any commands"
+                            self.view.run_command('glue_writer', {'text': user_error_msg, 'command': glue_command, 'exit': False})
+                    else:
+                        usercom_error_msg = "The glue.json file could not be found.  Please confirm that this is contained in a Glue-Commands directory in your Sublime Text Packages directory."
+                        self.view.run_command('glue_writer', {'text': usercom_error_msg, 'command': glue_command, 'exit': False})
                 # OPEN command
                 elif com_args[1] == "open":
                     if len(com_args) > 2:
@@ -106,31 +241,22 @@ class GlueCommand(sublime_plugin.TextCommand):
                     else:
                         missing_file_error_msg = "Please enter at least one filepath after the open command.\n"
                         self.view.run_command('glue_writer', {'text': missing_file_error_msg, 'command': glue_command, 'exit': False})
+                # TEST command
                 elif com_args[1] == "test":
-                    pass
+                    x = 1/0
+                    current_proj = sublime.packages_path()
                     # current_proj = str(dir(self.view.window()))
                     # current_proj = str(self.view.window().project_file_name())
                     # self.view.run_command('install_package')
-                    # self.view.run_command('glue_writer', {'text': current_proj, 'command': glue_command, 'exit': False})
+                    self.view.run_command('glue_writer', {'text': current_proj, 'command': glue_command, 'exit': False})
+                # USER ALIAS commands
                 else:
-                    # USER COMMANDS
                     if len(com_args) > 1:
-                        found_usercom = False
-                        file_name = com_args[1] + '.gluc'
-                        found_path = ''
-                        uc_file_path = os.path.join('glue', file_name)
-                        for i in range(6):
-                            if not self.is_file_at_this_level(uc_file_path):
-                                os.chdir(os.pardir)
-                            else:
-                                found_usercom = True
-                                found_path = os.path.join(os.getcwd(), uc_file_path)
-                                break
-                        os.chdir(self.current_dirpath)
-                        # Read the file to obtain the command
-                        if found_usercom:
-                            fr = FileReader(found_path)
-                            user_command = fr.read_utf8()
+                        uc_file_path = os.path.join(sublime.packages_path(), 'Glue-Commands', 'glue.json')
+                        if self.is_file_here(uc_file_path):
+                            fr = FileReader(uc_file_path)
+                            user_json = fr.read_utf8()
+                            usercom_dict = json.loads(user_json)
                             # if arguments from command, add those in location indicated by the file
                             if len(com_args) > 2:
                                 # arguments were included on the command line, pass them to the user command
@@ -138,16 +264,22 @@ class GlueCommand(sublime_plugin.TextCommand):
                             else:
                                 # no additional arguments were included so pass empty string if there is an {{args}} tag
                                 arguments = ''
-                            user_command = user_command.replace('{{args}}', arguments)
-                            self.muterun(user_command)
-                        # Didn't find a glue command, provide error message
+                            if com_args[1] in usercom_dict:
+                                user_command = usercom_dict[com_args[1]]
+                                user_command = user_command.replace('{{args}}', arguments)
+                                self.muterun(user_command) # execute the command
+                            else:
+                                # didn't find a glue alias with the requested name in the existing glue alias settings file
+                                bad_cmd_error_msg = "Glue could not identify that command.  Please try again.\n"
+                                self.view.run_command('glue_writer', {'text': bad_cmd_error_msg, 'command': glue_command, 'exit': False})
+                        # Didn't find a glue alias setting file, provide error message
                         else:
                             bad_cmd_error_msg = "Glue could not identify that command.  Please try again.\n"
                             self.view.run_command('glue_writer', {'text': bad_cmd_error_msg, 'command': glue_command, 'exit': False})
             else:
                 missing_arg_error_msg = "Glue requires an argument.  Please use 'glue help' for for more information.\n"
                 self.view.run_command('glue_writer', {'text': missing_arg_error_msg, 'command': glue_command, 'exit': False})
-        # execute the system command that was entered
+        # Execute the system command that was entered
         else:
             try:
                 if len(com_args) > 0:
@@ -161,13 +293,13 @@ class GlueCommand(sublime_plugin.TextCommand):
                 self.progress_indicator(t) # provide progress indicator
                 self.print_on_complete(t, user_command) # polls for completion of the thread and prints to editor
             except Exception as e:
-                sys.stderr.write("Glue Plugin Error: unable to run the shell command.")
+                sys.stderr.write("Glue Plugin Error: unable to execute the shell command. ")
                 raise e
 
     #------------------------------------------------------------------------------
     # [ is_file_at_this_level ] - returns boolean for presence of filepath
     #------------------------------------------------------------------------------
-    def is_file_at_this_level(self, filepath):
+    def is_file_here(self, filepath):
         if os.path.exists(filepath) and os.path.isfile(filepath):
             return True
         else:
@@ -218,7 +350,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                 self.view.run_command('glue_writer', {'text': self.stderr, 'command': user_command})
 
             # print to stdout as well
-            self.print_response()
+            # self.print_response()
 
     #------------------------------------------------------------------------------
     # [ progress_indicator method ] - display progress indicator for long running processes
@@ -254,7 +386,6 @@ class GlueCommand(sublime_plugin.TextCommand):
                 with self.attr_lock:
                     self.exitcode = 0
                     self.stdout = response.decode('utf-8')
-                # self.view.run_command('glue_writer', {'text': self.stdout, 'command': user_command})
             except subprocess.CalledProcessError as cpe:
                 # acquire thread lock on the attribute data
                 with self.attr_lock:
@@ -263,7 +394,6 @@ class GlueCommand(sublime_plugin.TextCommand):
                         self.exitcode = cpe.returncode
                     else:
                         self.exitcode = 1
-                # self.view.run_command('glue_writer', {'text': self.stderr, 'command': user_command})
             except Exception as e:
                 raise e
         # Python 2 version = Sublime Text 2 version
@@ -287,9 +417,20 @@ class GlueCommand(sublime_plugin.TextCommand):
         with self.attr_lock:
             excode = self.exitcode
         if excode == 0:
-            print(self.stdout)
+            with self.attr_lock:
+                print(self.stdout)
         else:
-            print(self.stderr)
+            with self.attr_lock:
+                print(self.stderr)
+
+    #------------------------------------------------------------------------------
+    # [ xitems iterator ] - uses appropriate method from Py2 and Py3 to iterate through dict items
+    #------------------------------------------------------------------------------
+    def xitems(self, the_dict):
+        if version_info[0] == 3:
+            return the_dict.items()
+        else:
+            return the_dict.iteritems()
 
 
 #------------------------------------------------------------------------------
@@ -326,9 +467,10 @@ class GlueWriterCommand(sublime_plugin.TextCommand):
             self.view.insert(edit, self.view.sel()[0].begin(), exit_command)
             self.view.insert(edit, self.view.sel()[0].begin(), exit_string)
             self.view.show(self.view.sel()[0].begin())
-            return True
 
-
+#------------------------------------------------------------------------------
+# [ GlueClearEditorCommand class ] - clears the editor window
+#------------------------------------------------------------------------------
 class GlueClearEditorCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
