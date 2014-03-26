@@ -25,9 +25,10 @@ class GlueSidebarOpenerCommand(sublime_plugin.WindowCommand):
             self.window.active_view().run_command('glue')
         elif os.path.exists(path) and os.path.isdir(path):
             # create a .glue terminal file in the directory if it does not exist
+            os.chdir(path) # make the directory the current directory
             glue_filenames = [name for name in os.listdir(path) if name.endswith('.glue')]
             if len(glue_filenames) > 0:
-                path = glue_filenames[0]
+                path = os.path.join(path, glue_filenames[0])
                 if path.endswith('.glue'):
                     self.erase_existing_glue_file(path) # clear the terminal text in .glue files
                 self.open_the_file(path)
