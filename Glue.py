@@ -76,7 +76,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             # 1. if using unsaved buffer (i.e. buffer = 1), set current path to <user-dir>/NEW.glue
             #------------------------------------------------------------------------------
             if buffer:
-                self.current_filepath = os.path.join(self.start_dirpath, 'NEW.glue')
+                self.current_filepath = os.path.join(self.start_dirpath, 'terminal.glue')
             else:
                 if self.current_filepath: # if it is set
                     if self.current_filepath.endswith('.glue'):
@@ -93,19 +93,32 @@ class GlueCommand(sublime_plugin.TextCommand):
             # 1. handle buffer view (non-saved file) || buffer flag = 1
             # 2. handle write new file view || create_file flag = 1
             #------------------------------------------------------------------------------
-            if self.current_filepath.endswith('.glue') and (self.current_filepath == self.view.file_name()):
-                pass # do nothing, the active view is the appropriate .glue terminal file
+            if self.current_filepath.endswith('.glue'):
+                if self.current_filepath == self.view.file_name():
+                    pass # do nothing, the active view is the appropriate .glue terminal file
+                elif self.view.file_name() == None:
+                    self.view.set_name('terminal.glue') #set the tab name on an unsaved buffer
+                elif self.current_filepath != self.view.file_name(): # another file in the directory is opened
+                    # check for an existing .glue file and open if present
+                    gluefile_test_list = [name for name in os.listdir(self.start_dirpath) if name.endswith('.glue')]
+                    if len(gluefile_test_list) > 0: # if there is a .glue terminal file, open it
+                        self.view = self.view.window().open_file(os.path.join(self.start_dirpath, gluefile_test_list[0]))
+                    else:
+                        self.view = self.view.window().new_file()
+                        self.view.set_name('terminal.glue')
             else:
                 if buffer:
-                    self.view.set_name('NEW.glue')
+                    self.view.set_name('terminal.glue')
                 elif create_file:
                     # confirm that there is not a .glue file in the current directory, open it if there is
                     gluefile_test_list = [name for name in os.listdir(self.start_dirpath) if name.endswith('.glue')]
                     if len(gluefile_test_list) > 0: # if there is a .glue terminal file, open it
                         self.view.window().open_file(os.path.join(self.start_dirpath, gluefile_test_list[0]))
                     else: # otherwise, create a new one
-                        self.view.window().new_file() # create a new file at the file path established above
-                        self.view.set_name('NEW.glue')
+                        self.view = self.view.window().new_file() # create a new file at the file path established above
+                        self.view.set_name('terminal.glue')
+
+
             #------------------------------------------------------------------------------
             # Launch the Input Panel for User Input - off to the races...
             #------------------------------------------------------------------------------
@@ -118,6 +131,7 @@ class GlueCommand(sublime_plugin.TextCommand):
     #------------------------------------------------------------------------------
     def cleanup(self):
         self.current_dirpath = "" # clear the saved working directory path
+        self.start_dirpath = "" # clear the start directory path for the file
         self.settings.set('glue_working_directory', '') # clear the saved directory path
 
     #------------------------------------------------------------------------------
@@ -293,7 +307,6 @@ class GlueCommand(sublime_plugin.TextCommand):
                 self.progress_indicator(t) # provide progress indicator
                 self.print_on_complete(t, user_command) # polls for completion of the thread and prints to editor
             except Exception as e:
-                sys.stderr.write("Glue Plugin Error: unable to execute the shell command. ")
                 raise e
 
     #------------------------------------------------------------------------------
@@ -349,7 +362,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             else:
                 self.view.run_command('glue_writer', {'text': self.stderr, 'command': user_command})
 
-            # print to stdout as well
+            # print to stdout as well - removed
             # self.print_response()
 
     #------------------------------------------------------------------------------
