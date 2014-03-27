@@ -196,7 +196,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                     dirchange_error_message = "Directory path '" + change_path + "' does not exist\n"
                     self.view.run_command('glue_writer', {'text': dirchange_error_message, 'command': directory_change_cmd, 'exit': False})
             else:
-                dirchange_error_message = "Please enter a path following the 'cd' command"
+                dirchange_error_message = "Please enter a path following the 'cd' command\n"
                 self.view.run_command('glue_writer', {'text': dirchange_error_message, 'command': 'cd', 'exit': False})
         # GLUE commands
         elif com_args[0] == 'glue':
@@ -206,6 +206,19 @@ class GlueCommand(sublime_plugin.TextCommand):
                 if com_args[1] == "--help" or com_args[1] == "-h" or com_args[1] == "help":
                     help_text = get_help_text()
                     self.view.run_command('glue_writer', {'text': help_text, 'command': glue_command, 'exit': False})
+                # BROWSE command
+                elif com_args[1] == "browse":
+                    if len(com_args) > 2:
+                        import webbrowser
+                        if com_args[2].startswith('http://') or com_args[2].startswith('https://'):
+                            webbrowser.open(com_args[2])
+                        else:
+                            webbrowser.open('http://' + com_args[2])
+                        browser_msg = "glue browse [ " + com_args[2] + " ] complete\n"
+                        self.view.run_command('glue_writer', {'text': browser_msg, 'command': glue_command, 'exit': False})
+                    else:
+                        browser_error_msg = "Please enter a URL after the glue browse command\n"
+                        self.view.run_command('glue_writer', {'text': browser_error_msg, 'command': glue_command, 'exit': False})
                 # CLEAR command
                 elif com_args[1] == "clear":
                     self.view.run_command('glue_clear_editor')
@@ -220,10 +233,12 @@ class GlueCommand(sublime_plugin.TextCommand):
                         usercom_dict = json.loads(user_json)
                         if len(usercom_dict) > 0:
                             if len(usercom_dict) == 1:
-                                com_number_string = 'command'
+                                com_extension_string = 'extension'
+                                com_number_string = 'lonely'
                             else:
-                                com_number_string = 'commands'
-                            number_com_msg = "You have extended Glue with " + str(len(usercom_dict)) + " additional " + com_number_string + ":\n\n"
+                                com_extension_string = 'extensions'
+                                com_number_string = str(len(usercom_dict))
+                            number_com_msg = "Your " + com_number_string + " Glue " + com_extension_string + ":\n\n"
                             com_list = []
                             for key, value in self.xitems(usercom_dict):
                                 com_string = key + " : " + value
@@ -232,11 +247,16 @@ class GlueCommand(sublime_plugin.TextCommand):
                             com_string = number_com_msg + com_string + '\n'
                             self.view.run_command('glue_writer', {'text': com_string, 'command': glue_command, 'exit': False})
                         else:
-                            user_error_msg = "Your glue.json file does not contain any commands"
+                            user_error_msg = "Your glue.json file does not contain any commands\n"
                             self.view.run_command('glue_writer', {'text': user_error_msg, 'command': glue_command, 'exit': False})
                     else:
                         usercom_error_msg = "The glue.json file could not be found.  Please confirm that this is contained in a Glue-Commands directory in your Sublime Text Packages directory."
                         self.view.run_command('glue_writer', {'text': usercom_error_msg, 'command': glue_command, 'exit': False})
+                # NEW command
+                elif com_args[1] == "new":
+                    self.view.window().new_file()
+                    filenew_text = "glue new command completed\n"
+                    self.view.run_command('glue_writer', {'text': filenew_text, 'command': glue_command, 'exit': False})
                 # OPEN command
                 elif com_args[1] == "open":
                     if len(com_args) > 2:
@@ -280,7 +300,9 @@ class GlueCommand(sublime_plugin.TextCommand):
                                 arguments = ''
                             if com_args[1] in usercom_dict:
                                 user_command = usercom_dict[com_args[1]]
-                                user_command = user_command.replace('{{args}}', arguments)
+                                user_command = user_command.replace('{{args}}', arguments) # replace with CL args
+                                user_command = user_command.replace('{{pwd}}', os.getcwd()) #  replace with working dir path
+                                user_command = user_command.replace('{{clipboard}}', sublime.get_clipboard()) # replace with contents of clipboard
                                 self.muterun(user_command) # execute the command
                             else:
                                 # didn't find a glue alias with the requested name in the existing glue alias settings file
