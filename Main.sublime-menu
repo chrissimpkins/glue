@@ -1,0 +1,104 @@
+[
+	{
+		"caption": "Preferences",
+		"mnemonic": "n",
+		"id": "preferences",
+		"children":
+		[
+			{
+				"caption": "Package Settings",
+				"mnemonic": "P",
+				"id": "package-settings",
+				"children":
+				[
+					{
+						"caption": "Glue",
+						"children":
+						[
+							{
+								"command": "open_file",
+								"args": {"file": "${packages}/Glue/messages/install.txt"},
+								"caption": "• Need Help?"
+							},
+                            {
+                                "command": "glue_browse_this",
+                                "args": {"url": "http://gluedocs.readthedocs.org/"},
+                                "caption": "• Launch Web Docs -->"
+                            },
+							{ "caption": "-" },
+                            {
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/Glue/Glue.sublime-settings"
+                                    },
+                                "caption": "• Glue Settings - Default"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/User/Glue.sublime-settings"
+                                    },
+                                "caption": "• Glue Settings - User"
+                            },
+                            { "caption": "-" },
+                            {
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/Glue/keymaps/Default (OSX).sublime-keymap",
+                                    "platform": "OSX"
+                                },
+                                "caption": "• Key Bindings - Default"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/Glue/keymaps/Default (Linux).sublime-keymap",
+                                    "platform": "Linux"
+                                },
+                                "caption": "• Key Bindings - Default"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/Glue/keymaps/Default (Windows).sublime-keymap",
+                                    "platform": "Windows"
+                                },
+                                "caption": "• Key Bindings - Default"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/User/Default (OSX).sublime-keymap",
+                                    "platform": "OSX"
+                                },
+                                "caption": "• Key Bindings - User"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/User/Default (Linux).sublime-keymap",
+                                    "platform": "Linux"
+                                },
+                                "caption": "• Key Bindings - User"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/User/Default (Windows).sublime-keymap",
+                                    "platform": "Windows"
+                                },
+                                "caption": "• Key Bindings - User"
+                            },
+                            { "caption": "-" },
+                            {
+                                "command": "glue_browse_this",
+                                "args": {"url": ""},
+                                "caption": "• Submit Issue Report -->"
+                            },
+						]
+					}
+				]
+			}
+		]
+	}
+]
