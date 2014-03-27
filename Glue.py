@@ -528,7 +528,7 @@ Copyright 2014 Christopher Simpkins | MIT License
 
 Glue joins your shell to Sublime Text in quasi-perfect harmony.
 
-Usage
+USAGE
 
   <command> [option(s)]
 
@@ -536,32 +536,46 @@ Usage
 
   To quit Glue, submit the command 'exit'.
 
-Commands
+COMMANDS
+
   Glue provides the following additional commands:
 
-  glue clear               Clear the text in the Glue view
-  glue help                Glue help
-  glue open <path>         Open a file at <path> in the editor. Accepts multiple <path>
-  glue wco <pattern>       Open file(s) with wildcard <pattern> in the editor
+    glue browse <url>     Open default browser to <url>
+    glue clear            Clear the text in the Glue view
+    glue help             Glue help
+    glue new              Create a new Sublime Text buffer
+    glue open <path>      Open a file at <path> in the editor. Accepts multiple <path>
+    glue wco <pattern>    Open file(s) with wildcard <pattern> in the editor
 
-User Commands
-  Create a directory named `glue` in the top level directory of your project and then add one or more files with the path `<PROJECT>/glue/<commandname>.gluc` in the directory.  Add a one-line command to the top line of the file and save it as plain text. Include one or more optional {{args}} tags anywhere in the command string in the file where you would like to insert any additional arguments that you include on the command line.
+USER COMMANDS
 
-  Launch Glue and run your command with the following syntax:
+  Create a `Glue-Commands` directory inside your Sublime Text `Packages` directory.  Create a `glue.json` file inside the `Glue-Commands` directory.  Then map your JSON key:value as "command-name": "system command string".
 
-     glue <commandname> [args]
+  You have the option to include the following replacement tags in your system command string:
 
-  Your command is executed from your current working directory.
+    {{args}}              additional arguments that you include on the command line
+    {{clipboard}}         the contents of the clipboard
+    {{pwd}}               the current working directory path
 
-Navigation
-  The working directory is initially set to the directory containing the buffer where you use Glue if you launch it with the sidebar menu item.  Change directories with the 'cd' command:
+  Launch Glue and run your command extension(s) with the following syntax:
+
+     glue <command-name> [args]
+
+  Your command is executed from your current working directory. Please see the documentation for additional details.
+
+NAVIGATION
+
+  The working directory is initially set to the directory containing the buffer in which you are using Glue (when you open from sidebar right click menu or with a project file open in the editor).
+
+  Change directories with the 'cd' command:
 
   cd <directory path>        Make `directory path` the working directory
   cd ..                      Make parent directory the working directory
 
-  Note that if you are using a buffer that is not saved as the view for Glue (e.g. launching with the Command Palette), your working directory defaults to your user directory.
+  Note that your working directory defaults to the system User directory if you launch Glue from the Command Palette without having an open project file in the editor (or in a clean editor window without an open project).
 
-Issues
+ISSUES
+
   Please submit bug reports on the GitHub repository @ https://github.com/chrissimpkins/glue/issues
 
 """
