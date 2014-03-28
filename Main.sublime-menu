@@ -92,9 +92,9 @@
                             { "caption": "-" },
                             {
                                 "command": "glue_browse_this",
-                                "args": {"url": ""},
+                                "args": {"url": "https://github.com/chrissimpkins/glue/issues"},
                                 "caption": "• Submit Issue Report -->"
-                            },
+                            }
 						]
 					}
 				]
