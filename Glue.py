@@ -344,20 +344,31 @@ class GlueCommand(sublime_plugin.TextCommand):
     # [ get_path method ] - find the correct path to the executable from the user's PATH setting
     #------------------------------------------------------------------------------
     def get_path(self, executable):
-        if ':' in self.userpath:
-            paths = self.userpath.split(':')
+        # need to keep the Windows ; PATH separator logic first because the : will match in Windows paths like C:\blah
+        if ';' in self.userpath:
+            paths = self.userpath.split(';')
             for path in paths:
                 test_path = os.path.join(path, executable)
+                # Windows unicode test in Py2
+                if version_info[0] == 2:
+                    if os.path.isfile(unicode(test_path)):
+                        return path
+                # otherwise perform standard string comparisons
                 if os.path.isfile(test_path):
                     return path
                 elif os.path.islink(test_path):
                     return os.path.dirname(os.path.realpath(test_path))
             # if the method did not return with found path, just return empty path and keep fingers crossed...
             return ''
-        elif ';' in self.userpath:
-            paths = self.userpath.split(';')
+        elif ':' in self.userpath:
+            paths = self.userpath.split(':')
             for path in paths:
                 test_path = os.path.join(path, executable)
+                # Unicode test in Py2, determine whether unicode string matches for OS that encodes as unicode
+                if version_info[0] == 2:
+                    if os.path.isfile(unicode(test_path)):
+                        return path
+                # otherwise perform standard string comparisons (Py3 str incorporates unicode type from Py2)
                 if os.path.isfile(test_path):
                     return path
                 elif os.path.islink(test_path):
