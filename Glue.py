@@ -254,24 +254,24 @@ class GlueCommand(sublime_plugin.TextCommand):
                         self.view.run_command('glue_writer', {'text': usercom_error_msg, 'command': glue_command, 'exit': False})
                 # NEW command
                 elif com_args[1] == "new":
-                    self.view.window().new_file()
                     filenew_text = "glue new command completed\n"
                     self.view.run_command('glue_writer', {'text': filenew_text, 'command': glue_command, 'exit': False})
+                    self.view.window().new_file()
                 # OPEN command
                 elif com_args[1] == "open":
                     if len(com_args) > 2:
-                        self.view.window().run_command('glue_file_opener', {'current_dir': self.current_dirpath, 'file_list': com_args[2:]})
                         fileopen_text = "glue open command completed\n"
                         self.view.run_command('glue_writer', {'text': fileopen_text, 'command': glue_command, 'exit': False})
+                        self.view.window().run_command('glue_file_opener', {'current_dir': self.current_dirpath, 'file_list': com_args[2:]})
                     else:
                         missing_file_error_msg = "Please enter at least one filepath after the open command.\n"
                         self.view.run_command('glue_writer', {'text': missing_file_error_msg, 'command': glue_command, 'exit': False})
                 # WCO command
                 elif com_args[1] == "wco":
                     if len(com_args) > 2:
-                        self.view.window().run_command('glue_file_wildcard_opener', {'current_dir': self.current_dirpath, 'match_pattern': com_args[2]})
                         fileopen_text = "glue wco command completed\n"
                         self.view.run_command('glue_writer', {'text': fileopen_text, 'command': glue_command, 'exit': False})
+                        self.view.window().run_command('glue_file_wildcard_opener', {'current_dir': self.current_dirpath, 'match_pattern': com_args[2]})
                     else:
                         missing_file_error_msg = "Please enter at least one filepath after the open command.\n"
                         self.view.run_command('glue_writer', {'text': missing_file_error_msg, 'command': glue_command, 'exit': False})
