@@ -1,7 +1,9 @@
 Glue
 ====
 
-[Glue](https://github.com/chrissimpkins/glue) is a cross-platform, extensible plug-in for [Sublime Text 2 and 3](http://www.sublimetext.com/) that connects your favorite editor to your shell.
+[Glue](https://github.com/chrissimpkins/glue) is a cross-platform, [extensible](http://gluedocs.readthedocs.org/en/latest/extend-glue.html) plug-in for [Sublime Text 2 and 3](http://www.sublimetext.com/) that connects your favorite editor to your shell.
+
+Detailed documentation is available on [http://gluedocs.readthedocs.org](http://gluedocs.readthedocs.org)
 
 ## Launch
 
@@ -26,3 +28,15 @@ Use the command input box at the bottom of the screen to enter system commands j
 ![Enter Commands in Glue](http://gluedocs.readthedocs.org/en/latest/_images/command-entry-example.png "Command Entry with Glue")
 
 and the standard output is displayed in an editor view.
+
+## System Utilities
+
+It works with system utilities:
+
+#### grep
+
+![Grep Example](http://gluedocs.readthedocs.org/en/latest/_images/grep-example.png "Grep Example")
+
+#### cURL
+
+![cURL Example](http://gluedocs.readthedocs.org/en/latest/_images/curl-example.png "cURL Example")
