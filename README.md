@@ -40,3 +40,18 @@ It works with system utilities:
 #### cURL
 
 ![cURL Example](http://gluedocs.readthedocs.org/en/latest/_images/curl-example.png "cURL Example")
+
+## Scripting Languages
+
+It works with scripting languages:
+
+![Scripting Languages Examples](http://gluedocs.readthedocs.org/en/latest/_images/scripting-language-example.png "Scripting Languages Examples")
+
+## Inter-Process Communication
+
+Pipelining data between processes works.  You get the standard output from the final executable in the sequence:
+
+![Pipelining Example](http://gluedocs.readthedocs.org/en/latest/_images/pipelining-examples.png "Pipelining Example")
+
+
+
