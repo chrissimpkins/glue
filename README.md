@@ -53,5 +53,40 @@ Pipelining data between processes works.  You get the standard output from the f
 
 ![Pipelining Example](http://gluedocs.readthedocs.org/en/latest/_images/pipelining-examples.png "Pipelining Example")
 
+## Version Control
+
+Version control tasks are accessible inside the editor:
+
+![Version Control Example](http://gluedocs.readthedocs.org/en/latest/_images/git-example.png "Version Control Example")
+
+## Compile, Unit Test, Profile, Minify, Compress...
+
+You get the picture.
+
+## Navigation & Working Directory State
+
+Glue includes its own version of the `cd` command that allows you to navigate around your directory structure while maintaining your current working directory state between calls to the shell.
+
+## File Management
+
+Open files in the Sublime Text editor by file path:
+
+```
+█ glue open <filepath> [filepath2] [...]
+```
+
+or by wildcard pattern:
+
+```
+█ glue wco <wildcard>
+```
+
+and create new files with:
+
+```
+█ glue new
+```
+
+
 
 
