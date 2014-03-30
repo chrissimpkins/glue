@@ -12,3 +12,17 @@ Glue
 #### Open with the Command Palette
 
 ![Command Palette](http://gluedocs.readthedocs.org/en/latest/_images/command-palette-open.png "Open Glue with Command Palette")
+
+#### Open with Keybinding
+
+```
+Ctrl - Alt - G
+```
+
+## Enter Commands
+
+Use the command input box at the bottom of the screen to enter system commands just like you would in your terminal:
+
+![Enter Commands in Glue](http://gluedocs.readthedocs.org/en/latest/_images/command-entry-example.png "Command Entry with Glue")
+
+and the standard output is displayed in an editor view.
