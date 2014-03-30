@@ -8,6 +8,26 @@ Copyright 2014 Christopher Simpkins | MIT License
 
 Glue joins your shell to Sublime Text in quasi-perfect harmony.
 
+POST-INSTALL TASKS
+
+Important! To get up and running with Glue, please make sure that you correctly set your PATH string.  It is worth the thirty second investment of your time. The plugin will not work without it!
+
+Linux/Unix (including Mac OSX) Users
+
+1. Open the `Glue Settings - User` file and add a "glue_userpath" key to the JSON file.  Enter your system colon delimited PATH string as the value for this setting. You can view your PATH string by entering 'echo $PATH' in your terminal.
+2. Restart Sublime Text
+
+Windows Users
+
+1. Open the `Glue Settings - User` file and add a `glue_userpath` key to the JSON file.  Enter your semicolon delimited system PATH string as the value for this setting. You can view your PATH string by entering 'ECHO %PATH%' in your cmd.exe terminal.
+2. Restart Sublime Text
+
+See the Install documentation at http://gluedocs.readthedocs.org/en/latest/install.html if you need a more detailed description of the install process.
+
+Once this is complete, you are all set... Check out the instructions below to learn more about how to use Glue in Sublime Text.
+
+Detailed help documentation is available at http://gluedocs.readthedocs.org
+
 USAGE
 
   <command> [option(s)]
