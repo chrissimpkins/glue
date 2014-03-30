@@ -87,6 +87,59 @@ and create new files with:
 █ glue new
 ```
 
+## Extend Sublime Text With Glue Extensions
+
+You can build Sublime Text extensions **with your favorite language** or extend Sublime Text **with any system utility** using Glue command extensions.  These are aliases for system commands that can be called from the Glue command line using the syntax:
+
+```
+█ glue <your-command> [optional arguments]
+```
+
+You have the option to pass additional command line arguments, clipboard data, or the current working directory path to the mapped system command with [template tags](http://gluedocs.readthedocs.org/en/latest/extend-glue.html#define-your-command-extensions).
+
+### The Glue-Commands Directory
+
+Create a directory in your Sublime Text `Packages` directory (`Preferences > Browse Packages`) that is named `Glue-Commands`.
+
+### The glue.json File
+
+Create a new file in this directory with the following path `Glue-Commands/glue.json`.
+
+Use the `glue.json` file to create Glue extensions with `key = command name` to `value = command string` mapping.
+
+### Example
+
+You could make a command that executes a local image compression shell script on the path `/Users/me/scripts/cruncher.sh` with the following syntax:
+
+``` json
+
+{
+  "crunch": "/Users/me/scripts/cruncher.sh {{args}}"
+}
+```
+
+Then use it in Glue like this:
+
+```
+█ glue crunch image.png
+```
+
+The mapped system command is executed as:
+
+```
+/Users/me/scripts/cruncher.sh image.png
+```
+
+in your current working directory and is accessible in any Sublime Text project.
+
+Make as many as you'd like.  You can use the following command to reference an alphabetized list of your extensions:
+
+```
+█ glue user
+```
+
+More detailed extension documentation (including additional examples) is [available here](http://gluedocs.readthedocs.org/en/latest/extend-glue.html).
+
 
 
 
