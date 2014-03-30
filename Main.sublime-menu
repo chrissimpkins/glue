@@ -17,7 +17,7 @@
 						[
 							{
 								"command": "open_file",
-								"args": {"file": "${packages}/Glue/messages/install.txt"},
+								"args": {"file": "${packages}/Glue/messages/help.txt"},
 								"caption": "• Need Help?"
 							},
                             {
