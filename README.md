@@ -3,7 +3,11 @@ Glue
 
 [Glue](https://github.com/chrissimpkins/glue) is a cross-platform, [extensible](http://gluedocs.readthedocs.org/en/latest/extend-glue.html) plug-in for [Sublime Text 2 and 3](http://www.sublimetext.com/) that connects your favorite editor to your shell.
 
-Detailed documentation is available on [http://gluedocs.readthedocs.org](http://gluedocs.readthedocs.org)
+Detailed documentation is available on [http://gluedocs.readthedocs.org](http://gluedocs.readthedocs.org).
+
+## Set Your PATH
+
+Before you get started with Glue, you will need to set your system PATH string in the Glue settings. [Here are the instructions](http://gluedocs.readthedocs.org/en/latest/install.html#set-your-path).
 
 ## Launch
 
