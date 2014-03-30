@@ -1,5 +1,5 @@
 {
-	"glue_userpath" : "/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+	"glue_userpath" : "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
 	"glue_ps1" : "█",
 	"glue_display_path": true,
 	"glue_exit_message" : "Bye Bye. ♥ Glue",
