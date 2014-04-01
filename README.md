@@ -5,9 +5,9 @@ Glue
 
 Detailed documentation is available on [http://gluedocs.readthedocs.org](http://gluedocs.readthedocs.org).
 
-## Set Your PATH
+## Confirm Your PATH
 
-Before you get started with Glue, you will need to set your system PATH string in the Glue settings. [Here are the instructions](http://gluedocs.readthedocs.org/en/latest/install.html#set-your-path).
+Before you get started, please confirm your system PATH string in the Glue settings. [Here are the instructions](http://gluedocs.readthedocs.org/en/latest/install.html#confirm-your-path).
 
 ## Launch
 
