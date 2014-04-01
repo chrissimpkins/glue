@@ -25,6 +25,8 @@ COMMANDS
     glue help             Glue help
     glue new              Create a new Sublime Text buffer
     glue open <path>      Open a file at <path> in the editor. Accepts multiple <path>
+    glue path             View your PATH settings
+    glue user             View your Glue extensions (if present)
     glue wco <pattern>    Open file(s) with wildcard <pattern> in the editor
 
 USER COMMANDS

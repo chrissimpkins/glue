@@ -8,25 +8,46 @@ Copyright 2014 Christopher Simpkins | MIT License
 
 Glue joins your shell to Sublime Text in quasi-perfect harmony.
 
+
 POST-INSTALL TASKS
 
-Important! To get up and running with Glue, please make sure that you correctly set your PATH string.  It is worth the thirty second investment of your time. The plugin will not work without it!
+Important! Please take a couple of minutes to read and follow these post-install instructions in order to get up and running without a hitch.
+
+
+Confirm Your PATH Settings
+--------------------------
+
+Please make sure that your PATH settings are correct.  Glue will attempt to use your environment's PATH variable as the default PATH string.  This appears to work without issues for Linux and Windows users.  For Mac OSX users, these default PATH settings will likely need to be changed.  This is a known issue with the environment PATH assignment by Python in Sublime Text.
+
+Open Glue with the right click menu in a project sidebar or with the Command Palette (type 'glue') and run the command `glue path` in the input panel that is displayed at the bottom of your editor.  The PATH that Glue will use by default is displayed in the editor view.  If this is not the correct PATH string, please follow the instructions below to set your PATH in the Glue settings file.
 
 Linux/Unix (including Mac OSX) Users
 
-1. Open the `Glue Settings - User` file and add a "glue_userpath" key to the JSON file.  Enter your system colon delimited PATH string as the value for this setting. You can view your PATH string by entering 'echo $PATH' in your terminal.
+1. Open the `Glue Settings - User` file and add a "glue_userpath" key to the JSON file.  Enter your system colon delimited PATH string as the value for this setting. You can view your PATH string by entering 'echo $PATH' in your terminal.  Save the file.
 2. Restart Sublime Text
 
 Windows Users
 
-1. Open the `Glue Settings - User` file and add a `glue_userpath` key to the JSON file.  Enter your semicolon delimited system PATH string as the value for this setting. You can view your PATH string by entering 'ECHO %PATH%' in your cmd.exe terminal.
+1. Open the `Glue Settings - User` file and add a `glue_userpath` key to the JSON file.  Enter your semicolon delimited system PATH string as the value for this setting. Windows users should escape every backslash character in the PATH (i.e. every '\' should be changed to '\\'). You can view your PATH string by entering 'ECHO %PATH%' in your cmd.exe terminal.  Save the file.
 2. Restart Sublime Text
 
-See the Install documentation at http://gluedocs.readthedocs.org/en/latest/install.html if you need a more detailed description of the install process.
+
+Choose Your Shell
+-----------------
+This is an optional step.  If you would like to change your default shell, here's how you do it:
+
+Linux/Unix/Windows
+
+1. Open the `Glue Settings - User` file and add a "glue_shellpath" key to the JSON file.  Enter the path to your shell executable as the value for this setting.  Windows users should escape every backslash character in the PATH (i.e. every '\' should be changed to '\\').  Save the file.
+2. Restart Sublime Text
+
 
 Once this is complete, you are all set... Check out the instructions below to learn more about how to use Glue in Sublime Text.
 
+See the Install documentation at http://gluedocs.readthedocs.org/en/latest/install.html if you need a more detailed description of the install process.
+
 Detailed help documentation is available at http://gluedocs.readthedocs.org
+
 
 USAGE
 
@@ -35,6 +56,7 @@ USAGE
   Enter a system command in the input panel at the bottom of your editor using the same syntax that you use in your terminal.  The standard output stream from the executable is printed in the active view of your editor after it returns.
 
   To quit Glue, submit the command 'exit'.
+
 
 COMMANDS
 
@@ -45,7 +67,10 @@ COMMANDS
     glue help             Glue help
     glue new              Create a new Sublime Text buffer
     glue open <path>      Open a file at <path> in the editor. Accepts multiple <path>
+    glue path             View your PATH settings
+    glue user             View your Glue extensions (if present)
     glue wco <pattern>    Open file(s) with wildcard <pattern> in the editor
+
 
 USER COMMANDS
 
@@ -63,6 +88,7 @@ USER COMMANDS
 
   Your command is executed from your current working directory. Please see the documentation for additional details.
 
+
 NAVIGATION
 
   The working directory is initially set to the directory containing the buffer in which you are using Glue (when you open from sidebar right click menu or with a project file open in the editor).
@@ -74,6 +100,10 @@ NAVIGATION
 
   Note that your working directory defaults to the system User directory if you launch Glue from the Command Palette without having an open project file in the editor (or in a clean editor window without an open project).
 
+
 ISSUES
 
   Please submit bug reports on the GitHub repository @ https://github.com/chrissimpkins/glue/issues
+
+
+

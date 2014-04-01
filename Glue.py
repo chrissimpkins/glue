@@ -26,6 +26,7 @@ class GlueCommand(sublime_plugin.TextCommand):
         self.stderr = ""
         self.exitcode = 1
         self.userpath = self.settings.get('glue_userpath')
+        self.shellpath = self.settings.get('glue_shellpath')
         self.ps1 = self.settings.get('glue_ps1')
         self.start_dirpath = ""
         self.current_dirpath = self.settings.get('glue_working_directory')
@@ -266,6 +267,13 @@ class GlueCommand(sublime_plugin.TextCommand):
                     else:
                         missing_file_error_msg = "Please enter at least one filepath after the open command.\n"
                         self.view.run_command('glue_writer', {'text': missing_file_error_msg, 'command': glue_command, 'exit': False})
+                # PATH command
+                elif com_args[1] == "path":
+                    if len(self.userpath) == 0:
+                        the_path = os.environ['PATH']
+                    else:
+                        the_path = self.userpath
+                    self.view.run_command('glue_writer', {'text': the_path, 'command': glue_command, 'exit': False})
                 # WCO command
                 elif com_args[1] == "wco":
                     if len(com_args) > 2:
@@ -332,7 +340,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                 raise e
 
     #------------------------------------------------------------------------------
-    # [ is_file_at_this_level ] - returns boolean for presence of filepath
+    # [ is_file_here ] - returns boolean for presence of filepath
     #------------------------------------------------------------------------------
     def is_file_here(self, filepath):
         if os.path.exists(filepath) and os.path.isfile(filepath):
@@ -344,6 +352,9 @@ class GlueCommand(sublime_plugin.TextCommand):
     # [ get_path method ] - find the correct path to the executable from the user's PATH setting
     #------------------------------------------------------------------------------
     def get_path(self, executable):
+        # if it is not set, attempt to use the environment PATH variable that Python returns
+        if len(self.userpath) == 0:
+            self.userpath = os.environ['PATH']
         # need to keep the Windows ; PATH separator logic first because the : will match in Windows paths like C:\blah
         if ';' in self.userpath:
             paths = self.userpath.split(';')
@@ -426,8 +437,14 @@ class GlueCommand(sublime_plugin.TextCommand):
         # Python 3 version = Sublime Text 3 version
         if version_info[0] == 3:
             try:
-                # execute the system command
-                response = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+                # execute the system command (with user assigned shell if glue_shellpath is set)
+                if len(self.shellpath) == 0:
+                    response = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+                elif os.path.exists(self.shellpath) and os.path.isfile(self.shellpath):
+                    response = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True, executable=self.shellpath)
+                else:
+                    # run the default shell type if cannot identify the shellpath that the user assigned
+                    response = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
                 # acquire thread lock on attribute data
                 with self.attr_lock:
                     self.exitcode = 0
@@ -445,9 +462,20 @@ class GlueCommand(sublime_plugin.TextCommand):
         # Python 2 version = Sublime Text 2 version
         else:
             try:
-                response = subprocess.Popen(command, shell=True,
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE)
+                if len(self.shellpath) == 0:
+                    response = subprocess.Popen(command, shell=True,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+                elif os.path.exists(self.shellpath) and os.path.isfile(self.shellpath):
+                    response = subprocess.Popen(command, shell=True,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               executable=self.shellpath)
+                else:
+                    # run the default shell if cannot identify the shellpath that the user assigned
+                    response = subprocess.Popen(command, shell=True,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
                 stdout, stderr = response.communicate()
                 with self.attr_lock: # use the attribute lock (separate thread)
                     self.stdout = stdout.decode('utf-8')
@@ -556,6 +584,8 @@ COMMANDS
     glue help             Glue help
     glue new              Create a new Sublime Text buffer
     glue open <path>      Open a file at <path> in the editor. Accepts multiple <path>
+    glue path             View your PATH settings
+    glue user             View your Glue extensions (if present)
     glue wco <pattern>    Open file(s) with wildcard <pattern> in the editor
 
 USER COMMANDS
@@ -588,6 +618,10 @@ NAVIGATION
 ISSUES
 
   Please submit bug reports on the GitHub repository @ https://github.com/chrissimpkins/glue/issues
+
+HELP
+
+  Detailed help is available @ http://gluedocs.readthedocs.org/
 
 """
     return help_string

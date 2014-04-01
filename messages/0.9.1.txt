@@ -1,0 +1,27 @@
+        __
+ .-----|  .--.--.-----.
+ |  _  |  |  |  |  -__|
+ |___  |__|_____|_____|
+ |_____|
+
+Copyright 2014 Christopher Simpkins | MIT License
+
+You just got a new tub of Glue!
+
+CHANGELOG
+
+v0.9.1
+
+  1) Glue now provides a default PATH string based upon assignment with the Python os.environ['PATH'] attribute.  This should prevent Linux & Windows users from having to touch the settings file in order to get started with Glue. Mac OSX users may still need to modify their PATH setting in the `Glue Settings - User` JSON file.  It's an issue on the Sublime Text side...sorry.
+
+  2) Prefer zsh or bash? You can now set your default shell with the "glue_shellpath" setting in the `Glue Settings - User` JSON file. Use the filepath as the value in this JSON setting.
+
+Kudos:
+Thanks to @FichteFoll on GitHub for the feature request that led to #1
+
+---
+✪ You can view help documentation in Glue with the command `glue help`
+✪ Documentation is available at http://gluedocs.readthedocs.org/
+✪ Report issues at https://github.com/chrissimpkins/glue/issues
+
+
