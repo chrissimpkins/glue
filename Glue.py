@@ -272,8 +272,21 @@ class GlueCommand(sublime_plugin.TextCommand):
                 # PATH command
                 elif com_args[1] == "path":
                     if len(self.userpath) == 0:
-                        the_path = os.environ['PATH']
+                        # obtain the 'real' mac osx path using the get_mac_path method if not set by user
+                        if sublime.platform() == "osx":
+                            # get the PATH
+                            updated_path = self.get_mac_path() # attempt to obtain the PATH set in the user's respective shell startup file
+                            # set the Mac environ PATH to the obtained PATH
+                            os.environ['PATH'] = updated_path
+                            # assign the PATH to the self.userpath attribute for the executable search below (and for reuse while running)
+                            self.userpath = updated_path
+                            the_path = self.userpath
+                        else:
+                            # on Linux & Windows, set the userpath to the system PATH
+                            self.userpath = os.environ['PATH']
+                            the_path = self.userpath
                     else:
+                        # if there is a self.userpath that is set (user set in settings, previously set above) then set Python environ PATH string
                         the_path = self.userpath
                     self.view.run_command('glue_writer', {'text': the_path, 'command': glue_command, 'exit': False})
                 # WCO command
