@@ -364,11 +364,10 @@ class GlueCommand(sublime_plugin.TextCommand):
             return False
 
     #------------------------------------------------------------------------------
-    # [ get_mac_path method ] - obtain the real PATH user setting on the Mac
-    #  system command call from Fix Mac Path plugin (@int3h - GitHub)
+    # [ get_mac_path method ] - obtain the real PATH user setting on the Mac from bash
     #------------------------------------------------------------------------------
     def get_mac_path(self):
-        pathgetter = "/usr/bin/login -fpql $USER $SHELL -l -c 'echo -n $PATH'"
+        pathgetter = "bash -ilc 'echo -n $PATH'"
         updated_path = subprocess.Popen(pathgetter, stdout=subprocess.PIPE, shell=True).stdout.read()
         # update the shell PATH with this path
         return updated_path.decode("utf-8").rstrip().rstrip(':')
