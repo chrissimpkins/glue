@@ -27,6 +27,7 @@ class GlueCommand(sublime_plugin.TextCommand):
         self.exitcode = 1
         self.userpath = self.settings.get('glue_userpath')
         self.shellpath = self.settings.get('glue_shellpath')
+        self.original_env_path = os.environ['PATH']
         self.ps1 = self.settings.get('glue_ps1')
         self.start_dirpath = ""
         self.current_dirpath = self.settings.get('glue_working_directory')
@@ -134,6 +135,7 @@ class GlueCommand(sublime_plugin.TextCommand):
         self.current_dirpath = "" # clear the saved working directory path
         self.start_dirpath = "" # clear the start directory path for the file
         self.settings.set('glue_working_directory', '') # clear the saved directory path
+        os.environ['PATH'] = self.original_env_path # cleanup any environ PATH changes that Glue performed
 
     #------------------------------------------------------------------------------
     # [ exception_handler ] - print stack trace for raised exceptions from Glue plugin in the editor view
@@ -349,12 +351,35 @@ class GlueCommand(sublime_plugin.TextCommand):
             return False
 
     #------------------------------------------------------------------------------
+    # [ get_mac_path method ] - obtain the real PATH user setting on the Mac
+    #  system command call from Fix Mac Path plugin (@int3h - GitHub)
+    #------------------------------------------------------------------------------
+    def get_mac_path(self):
+        pathgetter = "/usr/bin/login -fpql $USER $SHELL -l -c 'echo -n $PATH'"
+        updated_path = subprocess.Popen(pathgetter, stdout=subprocess.PIPE, shell=True).stdout.read()
+        # update the shell PATH with this path
+        return updated_path.decode("utf-8").rstrip().rstrip(':')
+
+    #------------------------------------------------------------------------------
     # [ get_path method ] - find the correct path to the executable from the user's PATH setting
     #------------------------------------------------------------------------------
     def get_path(self, executable):
         # if it is not set, attempt to use the environment PATH variable that Python returns
         if len(self.userpath) == 0:
-            self.userpath = os.environ['PATH']
+            # set the mac osx PATH with os.environ['PATH']
+            if sublime.platform() == "osx":
+                # get the PATH
+                updated_path = self.get_mac_path() # obtain the PATH set in the user's respective shell rc file
+                # set the Mac environ PATH to the obtained PATH
+                os.environ['PATH'] = updated_path
+                # assign the PATH to the self.userpath attribute for the executable search below (and for reuse while running)
+                self.userpath = updated_path
+            else:
+                # on Linux & Windows, set the userpath to the system PATH
+                self.userpath = os.environ['PATH']
+        else:
+            # if there is a self.userpath that is set (user set in settings, previously set above) then set Python environ PATH string
+            os.environ['PATH'] = self.userpath
         # need to keep the Windows ; PATH separator logic first because the : will match in Windows paths like C:\blah
         if ';' in self.userpath:
             paths = self.userpath.split(';')
