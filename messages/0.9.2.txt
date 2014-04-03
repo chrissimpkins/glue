@@ -12,12 +12,18 @@ CHANGELOG
 
 v0.9.2
 
-  1) Fix for the default PATH setting on Mac OSX machines.  It should now capture something that is much closer to reality out of the gates than it did previously.
+  1) Fix for the default PATH setting on Mac OSX machines.  It should now capture something that is much closer to your actual settings out of the gates than it did previously.
+
   2) Fix for missing executables when appropriate PATH is set by user (in Glue Settings - User).  NPM was causing problems and this fix should address it.
-  3) Windows and Linux users >> You get this: ♥ - your OS's are behaving.  New features coming for everyone soon.
+
+  3) Glue is unbroken for Windows users (after being thorougly broken in the last patch), but I had to deactivate PATH handling on the Glue side for the Windows crew.  Your command is passed directly to your shell as is without an attempt to modify it based upon any settings that you may have in the "glue_userpath" setting.  This is in the queue.  For the time being, I wanted you to have a functional version that you can use with the default PATH in your shell.  You will need to use absolute filepaths (or a Glue extension) for any executable that is not contained in your PATH directories for now.
+
+  4) Linux users >> You get this: ♥ - your OS is behaving.
+
+  New features coming as soon as I clean up these multi-OS PATH issues...
 
 Kudos:
-Thanks to Frederico Brigante who brought these issues to my attention!
+Thanks to Frederico Brigante who brought the Mac OSX issues to my attention over on GitHub!
 
 If you encounter any problems, please submit a new issue on the GitHub repo (link below).
 
