@@ -17,21 +17,19 @@ Important! Please take a couple of minutes to read and follow these post-install
 Confirm Your PATH Settings
 --------------------------
 
-Please make sure that your PATH settings are correct.  Glue will attempt to use your environment's PATH variable as the default PATH string.  This appears to work without issues for Linux and Windows users.  For Mac OSX users, these default PATH settings will likely need to be changed.  This is a known issue with the environment PATH assignment by Python in Sublime Text.
+Please make sure that your PATH settings are correct.  Glue will attempt to use your environment's PATH variable as the default PATH string. In most cases it nails it, but occasionally the PATH string requires a bit of tinkering.
 
-Open Glue with the right click menu in a project sidebar or with the Command Palette (type 'glue') and run the command `glue path` in the input panel that is displayed at the bottom of your editor.  The PATH that Glue will use by default is displayed in the Glue editor view.  If this is not the correct PATH string, please follow the simple instructions below to set your PATH in the Glue settings file.
+Open Glue with the right click menu in a project sidebar or with the Command Palette (type 'glue') and run the command `glue path` in the input panel that is displayed at the bottom of your editor.  The PATH that Glue will use by default is displayed in the editor view.  If this is not the correct PATH string, please follow the instructions below to set your PATH in the Glue settings file.
 
 Linux/Unix (including Mac OSX) Users
 
-1. Open the `Glue Settings - User` file and add a "glue_userpath" key to the JSON file.  Enter your colon delimited system PATH string as the value for this setting. You can view your PATH string by entering 'echo $PATH' in your terminal.  Save the file.
+1. Open the `Glue Settings - User` file and add a "glue_userpath" key to the JSON file.  Enter your system colon delimited PATH string as the value for this setting. You can view your PATH string by entering 'echo $PATH' in your terminal.  Save the file.
 2. Restart Sublime Text
 
 Windows Users
 
 1. Open the `Glue Settings - User` file and add a `glue_userpath` key to the JSON file.  Enter your semicolon delimited system PATH string as the value for this setting. Windows users should escape every backslash character in the PATH (i.e. every '\' should be changed to '\\'). You can view your PATH string by entering 'ECHO %PATH%' in your cmd.exe terminal.  Save the file.
 2. Restart Sublime Text
-
-Please see the documentation at http://gluedocs.readthedocs.org/en/latest/install.html#confirm-your-path for examples if you need assistance.
 
 
 Choose Your Shell
