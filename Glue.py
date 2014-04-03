@@ -92,8 +92,6 @@ class GlueCommand(sublime_plugin.TextCommand):
 
             #------------------------------------------------------------------------------
             # Establish Active View as Appropriate File
-            # 1. handle buffer view (non-saved file) || buffer flag = 1
-            # 2. handle write new file view || create_file flag = 1
             #------------------------------------------------------------------------------
             if self.current_filepath.endswith('.glue'):
                 if self.current_filepath == self.view.file_name():
@@ -288,7 +286,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                     else:
                         # if there is a self.userpath that is set (user set in settings, previously set above) then set Python environ PATH string
                         the_path = self.userpath
-                    self.view.run_command('glue_writer', {'text': the_path, 'command': glue_command, 'exit': False})
+                    self.view.run_command('glue_writer', {'text': the_path + '\n', 'command': glue_command, 'exit': False})
                 # WCO command
                 elif com_args[1] == "wco":
                     if len(com_args) > 2:
@@ -364,7 +362,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             return False
 
     #------------------------------------------------------------------------------
-    # [ get_mac_path method ] - obtain the real PATH user setting on the Mac from bash
+    # [ get_mac_path method ] - obtain the user PATH setting on the Mac from bash
     #------------------------------------------------------------------------------
     def get_mac_path(self):
         pathgetter = "bash -ilc 'echo -n $PATH'"
@@ -373,7 +371,7 @@ class GlueCommand(sublime_plugin.TextCommand):
         return updated_path.decode("utf-8").rstrip().rstrip(':')
 
     #------------------------------------------------------------------------------
-    # [ get_path method ] - find the correct path to the executable from the user's PATH setting
+    # [ get_path method ] - find the correct path to the executable from the user's PATH settings
     #------------------------------------------------------------------------------
     def get_path(self, executable):
         # if it is not set, attempt to use the environment PATH variable that Python returns
@@ -390,7 +388,8 @@ class GlueCommand(sublime_plugin.TextCommand):
                 # on Linux & Windows, set the userpath to the system PATH
                 self.userpath = os.environ['PATH']
         else:
-            # if there is a self.userpath that is set (user set in settings, previously set above) then set Python environ PATH string
+            # if there is a self.userpath that is set (user set in settings, previously set above) then set environ PATH string with it
+            # note this is reset in the cleanup method when user uses 'exit' command
             os.environ['PATH'] = self.userpath
         # need to keep the Windows ; PATH separator logic first because the : will match in Windows paths like C:\blah
         if ';' in self.userpath:
