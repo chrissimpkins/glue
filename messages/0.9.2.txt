@@ -13,7 +13,7 @@ CHANGELOG
 v0.9.2
 
   1) Fix for the default PATH setting on Mac OSX machines.  It should now capture something that is much closer to reality out of the gates than it did previously.
-  2) Fix for missing executables when appropriate PATH is set by user (in Glue Settings - User).  NPM was causing problems and this fix should address it if you have the appropriate module install directory on your PATH.
+  2) Fix for missing executables when appropriate PATH is set by user (in Glue Settings - User).  NPM was causing problems and this fix should address it.
   3) Windows and Linux users >> You get this: ♥ - your OS's are behaving.  New features coming for everyone soon.
 
 Kudos:
