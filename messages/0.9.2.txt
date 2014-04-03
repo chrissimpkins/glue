@@ -1,0 +1,27 @@
+        __
+ .-----|  .--.--.-----.
+ |  _  |  |  |  |  -__|
+ |___  |__|_____|_____|
+ |_____|
+
+Copyright 2014 Christopher Simpkins | MIT License
+
+You just got a new tub of Glue!
+
+CHANGELOG
+
+v0.9.2
+
+  1) Fix for the default PATH setting on Mac OSX machines.  It should now capture something that is much closer to reality out of the gates than it did previously.
+  2) Fix for missing executables when appropriate PATH is set by user (in Glue Settings - User).  NPM was causing problems and this fix should address it if you have the appropriate module install directory on your PATH.
+  3) Windows and Linux users >> You get this: ♥ - your OS's are behaving.  New features coming for everyone soon.
+
+Kudos:
+Thanks to Frederico Brigante who brought these issues to my attention!
+
+If you encounter any problems, please submit a new issue on the GitHub repo (link below).
+
+---
+✪ You can view help documentation in Glue with the command `glue help`
+✪ Documentation is available at http://gluedocs.readthedocs.org/
+✪ Report issues at https://github.com/chrissimpkins/glue/issues
