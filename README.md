@@ -144,5 +144,13 @@ Make as many as you'd like.  You can use the following command to reference an a
 
 More detailed extension documentation (including additional examples) is [available here](http://gluedocs.readthedocs.org/en/latest/extend-glue.html).
 
+## Changelog
+
+The changelog is available [here](https://github.com/chrissimpkins/glue/releases).
+
+## License
+
+[MIT License](https://github.com/chrissimpkins/glue/blob/master/LICENSE)
+
 
 
