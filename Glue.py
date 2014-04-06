@@ -457,7 +457,6 @@ class GlueCommand(sublime_plugin.TextCommand):
 
     #------------------------------------------------------------------------------
     # [ print_on_complete method ] - print to editor from main thread when cmd execution complete
-    #  necessary for ST2 (not from ST3...)
     #------------------------------------------------------------------------------
     def print_on_complete(self, thread, user_command):
         if thread.is_alive():
@@ -466,13 +465,24 @@ class GlueCommand(sublime_plugin.TextCommand):
         else:
             # command was successful
             if self.exitcode == 0:
-                self.view.run_command('glue_writer', {'text': self.stdout, 'command': user_command})
+                # clean the standard output string
+                clean_stdout = self.clean_output(self.stdout)
+                self.view.run_command('glue_writer', {'text': clean_stdout, 'command': user_command})
             # command was not successful (non-zero exit status)
             else:
                 self.view.run_command('glue_writer', {'text': self.stderr, 'command': user_command})
 
             # print to stdout as well - removed
             # self.print_response()
+
+    #------------------------------------------------------------------------------
+    # [ clean_output method ] - remove special characters that should not be printed to standard output view
+    #------------------------------------------------------------------------------
+    def clean_output(self, stdout_string):
+        # remove carriage return char (they display as CR in ST)
+        stdout_string = stdout_string.replace('\r\n', '\n')
+        stdout_string = stdout_string.replace('\r', '\n')
+        return stdout_string
 
     #------------------------------------------------------------------------------
     # [ progress_indicator method ] - display progress indicator for long running processes
