@@ -240,6 +240,31 @@ class GlueCommand(sublime_plugin.TextCommand):
                     self.view.run_command('glue_clear_editor')
                     # keeps the input panel open for more commands
                     self.view.run_command('glue')
+                # FINDER command
+                elif com_args[1] == "finder":
+                    # user is requesting a directory as an argument
+                    if len(com_args) > 2:
+                        finder_dirpath = com_args[2]
+                        if os.path.isdir(finder_dirpath):
+                            self.view.window().run_command("open_dir", {"dir": os.path.abspath(finder_dirpath)}) # open it
+                            curdir_finder_msg = "The requested directory was opened in your finder\n"
+                        elif os.path.isfile(finder_dirpath):
+                            finder_dirpath = os.path.dirname(finder_dirpath)
+                            self.view.window().run_command("open_dir", {"dir": os.path.abspath(finder_dirpath)}) # open it
+                            curdir_finder_msg = "The requested directory was opened in your finder\n"
+                        else:
+                            curdir_finder_msg = "Unable to find the requested directory path.  Please try again.\n"
+                        # provide Glue view output to user after execution of the finder reveal
+                        self.view.run_command('glue_writer', {'text': curdir_finder_msg, 'command': glue_command, 'exit': False})
+                    # user is requesting the current working directory (i.e. no argument)
+                    else:
+                        if len(self.current_dirpath) > 0 and os.path.isdir(self.current_dirpath):
+                            self.view.window().run_command("open_dir", {"dir": self.current_dirpath})
+                            curdir_finder_msg = "The current directory was opened in your finder.\n"
+                            self.view.run_command('glue_writer', {'text': curdir_finder_msg, 'command': glue_command, 'exit': False})
+                        else:
+                            curdir_finderror_msg = "Unable to detect the current working directory.  Please restart the Glue plugin and try again.\n"
+                            self.view.run_command('glue_writer', {'text': curdir_finderror_msg, 'command': glue_command, 'exit': False})
                 # LOCALHOST command
                 elif com_args[1] == "localhost":
                     import webbrowser
@@ -325,13 +350,12 @@ class GlueCommand(sublime_plugin.TextCommand):
                         self.view.run_command('glue_writer', {'text': missing_file_error_msg, 'command': glue_command, 'exit': False})
                 # TEST command
                 elif com_args[1] == "test":
-                    # test raise exeception in the ST view
-                    x = 1/0
-                    current_proj = sublime.packages_path()
-                    # current_proj = str(dir(self.view.window()))
-                    # current_proj = str(self.view.window().project_file_name())
-                    # self.view.run_command('install_package')
-                    self.view.run_command('glue_writer', {'text': current_proj, 'command': glue_command, 'exit': False})
+                    pass
+                    # test open containing folder
+
+                    #self.view.window().run_command("open_dir", {"dir": self.current_dirpath})
+
+                    # self.view.run_command('glue_writer', {'text': current_proj, 'command': glue_command, 'exit': False})
                 # USER ALIAS commands
                 else:
                     if len(com_args) > 1:
@@ -479,10 +503,9 @@ class GlueCommand(sublime_plugin.TextCommand):
     # [ clean_output method ] - remove special characters that should not be printed to standard output view
     #------------------------------------------------------------------------------
     def clean_output(self, stdout_string):
-        # remove carriage return char from Windows applications (they display as CR in ST)
-        if sublime.platform() == "windows":
-            stdout_string = stdout_string.replace('\r\n', '\n') # include this above the '\r' statement so that user does not get '\n\n' replacements
-            stdout_string = stdout_string.replace('\r', '\n')
+        # remove carriage return char (they display as CR in ST)
+        stdout_string = stdout_string.replace('\r\n', '\n') # include this above the '\r' statement so that user does not get '\n\n' replacements
+        stdout_string = stdout_string.replace('\r', '\n')
         return stdout_string
 
     #------------------------------------------------------------------------------
@@ -657,6 +680,7 @@ COMMANDS
 
     glue browse <url,path>    Open default browser to <url> or local <path>
     glue clear                Clear the text in the Glue view
+    glue finder [path]        Reveal current directory (default) or [path] directory in finder
     glue help                 Glue help
     glue localhost [port]     Open browser to localhost:8000 or optional localhost:[port]
     glue new                  Create a new Sublime Text buffer
