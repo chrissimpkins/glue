@@ -1,0 +1,38 @@
+        __
+ .-----|  .--.--.-----.
+ |  _  |  |  |  |  -__|
+ |___  |__|_____|_____|
+ |_____|
+
+Copyright 2014 Christopher Simpkins | MIT License
+
+You just got a new tub of Glue!
+
+CHANGELOG
+
+v0.9.3
+
+Updated Command:
+
+○ `glue browse` : if you use a local file path as an argument (instead of a URL), Glue will open the file in your default browser.  It's a quick and easy way to view project HTML documents in your browser. Here's an example for a project that contains a `html` directory:
+
+    $ glue browse html/index.html
+
+ URL still work with the `glue browse` command and will open your default browser at the requested URL.
+
+New Commands:
+
+○ `glue finder [path]` : reveal the current working directory (default) or optional [path] in the finder. Navigate to a different working directory with the `cd` command on all platforms.  See the documentation for more information :: http://gluedocs.readthedocs.org/en/latest/navigation.html
+○ `glue localhost [port]` : open your default browser to http://localhost:8000 by default or to http://localhost:<port> if you include a port argument
+
+
+Bug Fixes:
+
+○ Remove carriage returns from standard output returned to Glue.  This eliminates the displayed CR characters that were showing up in the standard output from some applications.
+
+---
+✪ You can view help documentation in Glue with the command `glue help`
+✪ Documentation is available at http://gluedocs.readthedocs.org/
+✪ Report issues at https://github.com/chrissimpkins/glue/issues
+
+
