@@ -479,9 +479,10 @@ class GlueCommand(sublime_plugin.TextCommand):
     # [ clean_output method ] - remove special characters that should not be printed to standard output view
     #------------------------------------------------------------------------------
     def clean_output(self, stdout_string):
-        # remove carriage return char (they display as CR in ST)
-        stdout_string = stdout_string.replace('\r\n', '\n')
-        stdout_string = stdout_string.replace('\r', '\n')
+        # remove carriage return char from Windows applications (they display as CR in ST)
+        if sublime.platform() == "windows":
+            stdout_string = stdout_string.replace('\r\n', '\n') # include this above the '\r' statement so that user does not get '\n\n' replacements
+            stdout_string = stdout_string.replace('\r', '\n')
         return stdout_string
 
     #------------------------------------------------------------------------------
