@@ -20,14 +20,16 @@ COMMANDS
 
   Glue provides the following additional commands:
 
-    glue browse <url>     Open default browser to <url>
-    glue clear            Clear the text in the Glue view
-    glue help             Glue help
-    glue new              Create a new Sublime Text buffer
-    glue open <path>      Open a file at <path> in the editor. Accepts multiple <path>
-    glue path             View your PATH settings
-    glue user             View your Glue extensions (if present)
-    glue wco <pattern>    Open file(s) with wildcard <pattern> in the editor
+    glue browse <url,path>    Open default browser to <url> or local <path>
+    glue clear                Clear the text in the Glue view
+    glue finder [path]        Reveal current directory (default) or [path] directory in finder
+    glue help                 Glue help
+    glue localhost [port]     Open browser to localhost:8000 or optional localhost:[port]
+    glue new                  Create a new Sublime Text buffer
+    glue open <path>          Open a file at <path> in the editor. Accepts multiple <path>
+    glue path                 View your PATH settings
+    glue user                 View your Glue extensions (if present)
+    glue wco <pattern>        Open file(s) with wildcard <pattern> in the editor
 
 USER COMMANDS
 
