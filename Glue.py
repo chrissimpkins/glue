@@ -252,7 +252,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                             user_error_msg = "Your glue.json file does not contain any commands\n"
                             self.view.run_command('glue_writer', {'text': user_error_msg, 'command': glue_command, 'exit': False})
                     else:
-                        usercom_error_msg = "The glue.json file could not be found.  Please confirm that this is contained in a Glue-Commands directory in your Sublime Text Packages directory."
+                        usercom_error_msg = "The glue.json file could not be found.  Please confirm that this is contained in a Glue-Commands directory in your Sublime Text Packages directory.\n"
                         self.view.run_command('glue_writer', {'text': usercom_error_msg, 'command': glue_command, 'exit': False})
                 # NEW command
                 elif com_args[1] == "new":
