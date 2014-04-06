@@ -213,59 +213,43 @@ class GlueCommand(sublime_plugin.TextCommand):
                     if len(com_args) > 2:
                         import webbrowser
                         browse_string = com_args[2]
+                        # if they requested a url with protocol, just open it
                         if browse_string.startswith('http://') or browse_string.startswith('https://'):
                             webbrowser.open(browse_string)
                         else:
-                            # check whether it is a local file that user wants to open in browser
-                              # remove the initial OS dependent filepath separator character if added
+                            # check if it is a local file that user wants to open in browser
+                              # remove the initial OS dependent filepath separator character if added (will be added back in .join method below)
                             if browse_string.startswith(os.sep):
                                 browse_string = browse_string[1:] # remove the first char (?are there typically two chars '\\' in Windows?)
                             elif os.altsep != None:
                                 if browse_string.startswith(os.altsep): # if there is an alternate separator (i.e. / on windows)
                                     browse_string = browse_string[1:] # then remove it
                             check_path = os.path.join(os.path.abspath(self.current_dirpath), browse_string)
+                            # test for existence of local file on the path
                             if self.is_file_here(check_path):
-                                webbrowser.open('file://' + check_path) #open the requested project file in browser
+                                webbrowser.open('file://' + check_path) # if it is a local file, open it in browser
                             else:
-                                webbrowser.open('http://' + browse_string) # add http protocol and attempt to launch as url
+                                webbrowser.open('http://' + browse_string) # if not, assume that it is a URL without protcol and add it
                         browser_msg = "glue browse [ " + browse_string + " ] complete\n"
                         self.view.run_command('glue_writer', {'text': browser_msg, 'command': glue_command, 'exit': False})
                     else:
-                        browser_error_msg = "Please enter a URL after the glue browse command\n"
+                        browser_error_msg = "Please enter a URL or local filepath after the glue browse command\n"
                         self.view.run_command('glue_writer', {'text': browser_error_msg, 'command': glue_command, 'exit': False})
                 # CLEAR command
                 elif com_args[1] == "clear":
                     self.view.run_command('glue_clear_editor')
                     # keeps the input panel open for more commands
                     self.view.run_command('glue')
-                # USER command
-                elif com_args[1] == "user":
-                    uc_file_path = os.path.join(sublime.packages_path(), 'Glue-Commands', 'glue.json')
-                    if self.is_file_here(uc_file_path):
-                        fr = FileReader(uc_file_path)
-                        user_json = fr.read_utf8()
-                        usercom_dict = json.loads(user_json)
-                        if len(usercom_dict) > 0:
-                            if len(usercom_dict) == 1:
-                                com_extension_string = 'extension'
-                                com_number_string = 'lonely'
-                            else:
-                                com_extension_string = 'extensions'
-                                com_number_string = str(len(usercom_dict))
-                            number_com_msg = "Your " + com_number_string + " Glue " + com_extension_string + ":\n\n"
-                            com_list = []
-                            for key, value in self.xitems(usercom_dict):
-                                com_string = key + " : " + value
-                                com_list.append(com_string)
-                            com_string = '\n'.join(sorted(com_list))
-                            com_string = number_com_msg + com_string + '\n'
-                            self.view.run_command('glue_writer', {'text': com_string, 'command': glue_command, 'exit': False})
-                        else:
-                            user_error_msg = "Your glue.json file does not contain any commands\n"
-                            self.view.run_command('glue_writer', {'text': user_error_msg, 'command': glue_command, 'exit': False})
-                    else:
-                        usercom_error_msg = "The glue.json file could not be found.  Please confirm that this is contained in a Glue-Commands directory in your Sublime Text Packages directory.\n"
-                        self.view.run_command('glue_writer', {'text': usercom_error_msg, 'command': glue_command, 'exit': False})
+                # LOCALHOST command
+                elif com_args[1] == "localhost":
+                    import webbrowser
+                    localhost_url = 'http://localhost:8000'
+                    if len(com_args) > 2:
+                        protocol = com_args[2] # the argument is the requested protocol (doesn't perform sanity check)
+                        localhost_url = 'http://localhost:' + protocol
+                    webbrowser.open(localhost_url)
+                    localhost_browse_msg = "glue localhost complete\n"
+                    self.view.run_command('glue_writer', {'text': localhost_browse_msg, 'command': glue_command, 'exit': False})
                 # NEW command
                 elif com_args[1] == "new":
                     filenew_text = "glue new command completed\n"
@@ -302,6 +286,34 @@ class GlueCommand(sublime_plugin.TextCommand):
                         # if there is a self.userpath that is set (user set in settings, previously set above) then set Python environ PATH string
                         the_path = self.userpath
                     self.view.run_command('glue_writer', {'text': the_path + '\n', 'command': glue_command, 'exit': False})
+                # USER command
+                elif com_args[1] == "user":
+                    uc_file_path = os.path.join(sublime.packages_path(), 'Glue-Commands', 'glue.json')
+                    if self.is_file_here(uc_file_path):
+                        fr = FileReader(uc_file_path)
+                        user_json = fr.read_utf8()
+                        usercom_dict = json.loads(user_json)
+                        if len(usercom_dict) > 0:
+                            if len(usercom_dict) == 1:
+                                com_extension_string = 'extension'
+                                com_number_string = 'lonely'
+                            else:
+                                com_extension_string = 'extensions'
+                                com_number_string = str(len(usercom_dict))
+                            number_com_msg = "Your " + com_number_string + " Glue " + com_extension_string + ":\n\n"
+                            com_list = []
+                            for key, value in self.xitems(usercom_dict):
+                                com_string = key + " : " + value
+                                com_list.append(com_string)
+                            com_string = '\n'.join(sorted(com_list))
+                            com_string = number_com_msg + com_string + '\n'
+                            self.view.run_command('glue_writer', {'text': com_string, 'command': glue_command, 'exit': False})
+                        else:
+                            user_error_msg = "Your glue.json file does not contain any commands\n"
+                            self.view.run_command('glue_writer', {'text': user_error_msg, 'command': glue_command, 'exit': False})
+                    else:
+                        usercom_error_msg = "The glue.json file could not be found.  Please confirm that this is contained in a Glue-Commands directory in your Sublime Text Packages directory.\n"
+                        self.view.run_command('glue_writer', {'text': usercom_error_msg, 'command': glue_command, 'exit': False})
                 # WCO command
                 elif com_args[1] == "wco":
                     if len(com_args) > 2:
@@ -313,6 +325,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                         self.view.run_command('glue_writer', {'text': missing_file_error_msg, 'command': glue_command, 'exit': False})
                 # TEST command
                 elif com_args[1] == "test":
+                    # test raise exeception in the ST view
                     x = 1/0
                     current_proj = sublime.packages_path()
                     # current_proj = str(dir(self.view.window()))
@@ -631,14 +644,15 @@ COMMANDS
 
   Glue provides the following additional commands:
 
-    glue browse <url>     Open default browser to <url>
-    glue clear            Clear the text in the Glue view
-    glue help             Glue help
-    glue new              Create a new Sublime Text buffer
-    glue open <path>      Open a file at <path> in the editor. Accepts multiple <path>
-    glue path             View your PATH settings
-    glue user             View your Glue extensions (if present)
-    glue wco <pattern>    Open file(s) with wildcard <pattern> in the editor
+    glue browse <url,path>    Open default browser to <url> or local <path>
+    glue clear                Clear the text in the Glue view
+    glue help                 Glue help
+    glue localhost [port]     Open browser to localhost:8000 or optional localhost:[port]
+    glue new                  Create a new Sublime Text buffer
+    glue open <path>          Open a file at <path> in the editor. Accepts multiple <path>
+    glue path                 View your PATH settings
+    glue user                 View your Glue extensions (if present)
+    glue wco <pattern>        Open file(s) with wildcard <pattern> in the editor
 
 USER COMMANDS
 
