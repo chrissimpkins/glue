@@ -212,11 +212,23 @@ class GlueCommand(sublime_plugin.TextCommand):
                 elif com_args[1] == "browse":
                     if len(com_args) > 2:
                         import webbrowser
-                        if com_args[2].startswith('http://') or com_args[2].startswith('https://'):
-                            webbrowser.open(com_args[2])
+                        browse_string = com_args[2]
+                        if browse_string.startswith('http://') or browse_string.startswith('https://'):
+                            webbrowser.open(browse_string)
                         else:
-                            webbrowser.open('http://' + com_args[2])
-                        browser_msg = "glue browse [ " + com_args[2] + " ] complete\n"
+                            # check whether it is a local file that user wants to open in browser
+                              # remove the initial OS dependent filepath separator character if added
+                            if browse_string.startswith(os.sep):
+                                browse_string = browse_string[1:] # remove the first char (?are there typically two chars '\\' in Windows?)
+                            elif os.altsep != None:
+                                if browse_string.startswith(os.altsep): # if there is an alternate separator (i.e. / on windows)
+                                    browse_string = browse_string[1:] # then remove it
+                            check_path = os.path.join(os.path.abspath(self.current_dirpath), browse_string)
+                            if self.is_file_here(check_path):
+                                webbrowser.open('file://' + check_path) #open the requested project file in browser
+                            else:
+                                webbrowser.open('http://' + browse_string) # add http protocol and attempt to launch as url
+                        browser_msg = "glue browse [ " + browse_string + " ] complete\n"
                         self.view.run_command('glue_writer', {'text': browser_msg, 'command': glue_command, 'exit': False})
                     else:
                         browser_error_msg = "Please enter a URL after the glue browse command\n"
