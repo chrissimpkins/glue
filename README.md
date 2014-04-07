@@ -98,7 +98,7 @@ Usage examples are available in [the documentation](http://gluedocs.readthedocs.
 <table>
 	<tr><th>Command</th><th>Description</th></tr>
 	<tr>
-		<td>cd</td><td>Change Directory</td>
+		<td>cd</td><td>change directory</td>
 	</tr>
 	<tr>
 		<td>exit</td>
