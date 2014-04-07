@@ -91,6 +91,61 @@ and create new files with:
 █ glue new
 ```
 
+## Available Glue Commands
+
+Usage examples are available in [the documentation](http://gluedocs.readthedocs.org/en/latest/commands.html).
+
+<table>
+	<tr><th>Command</th><th>Description</th></tr>
+	<tr>
+		<td>cd</td><td>Change Directory</td>
+	</tr>
+	<tr>
+		<td>exit</td>
+		<td>exit the Glue terminal</td>
+	</tr>
+	<tr>
+		<td>glue browse</td>
+		<td>open URL or local project file in default browser</td>
+	</tr>
+	<tr>
+		<td>glue clear</td>
+		<td>clear text in the Glue view</td>
+	</tr>
+	<tr>
+		<td>glue finder</td>
+		<td>reveal current directory (default) or optional path in finder</td>
+	</tr>
+	<tr>
+		<td>glue help</td>
+		<td>view help documentation in Glue view</td>
+	</tr>
+	<tr>
+		<td>glue localhost</td>
+		<td>open default web browser to local server</td>
+	</tr>
+	<tr>
+		<td>glue new</td>
+		<td>open a new Sublime Text buffer</td>
+	</tr>
+	<tr>
+		<td>glue open</td>
+		<td>open one or more project files by filepath</td>
+	</tr>
+	<tr>
+		<td>glue path</td>
+		<td>display the system PATH setting that is used by Glue</td>
+	</tr>
+	<tr>
+		<td>glue user</td>
+		<td>display alphabetized list of your Glue user extensions</td>
+	</tr>
+	<tr>
+		<td>glue wco</td>
+		<td>open one or more files by wildcard pattern</td>
+	</tr>
+</table>
+
 ## Extend Sublime Text With Glue Extensions
 
 You can build Sublime Text extensions **with your favorite language** or extend Sublime Text **with any system utility** using Glue command extensions.  These are aliases for system commands that can be called from the Glue command line using the syntax:
