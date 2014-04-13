@@ -177,7 +177,8 @@ class GlueCommand(sublime_plugin.TextCommand):
             com_args = user_command.split() # use simple split on whitespace in ST2, Py2.6 does not support unicode in shlex
         # Empty user_command
         if not com_args:
-            self.view.run_command('glue_writer', {'text': '', 'command': '', 'exit': False})
+            no_command_msg = "Please enter a command"
+            self.view.run_command('glue_writer', {'text': no_command_msg, 'command': '', 'exit': False})
         # EXIT command
         elif com_args[0] == "exit":
             self.cleanup() # run the cleanup method
