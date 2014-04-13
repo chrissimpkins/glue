@@ -272,6 +272,17 @@ class GlueCommand(sublime_plugin.TextCommand):
                         else:
                             curdir_finderror_msg = "Unable to detect the current working directory.  Please restart the Glue plugin and try again.\n"
                             self.view.run_command('glue_writer', {'text': curdir_finderror_msg, 'command': glue_command, 'exit': False})
+                # GOTO command
+                elif com_args[1] == "goto":
+                    if len(com_args) > 2:
+                        goto_user_msg = "goto " + com_args[2] + " completed\n"
+                        self.view.window().run_command("show_overlay", {"overlay": "goto", "show_files": True, "text": com_args[2]})
+                        self.view.run_command('glue_writer', {'text': goto_user_msg, 'command': glue_command, 'exit': False})
+                    else:
+                        # if no query string, just open the overlay
+                        goto_user_msg = "goto overlay launch completed\n"
+                        self.view.window().run_command("show_overlay", {"overlay": "goto", "show_files": True})
+                        self.view.run_command('glue_writer', {'text': goto_user_msg, 'command': glue_command, 'exit': False})
                 # LOCALHOST command
                 elif com_args[1] == "localhost":
                     import webbrowser
