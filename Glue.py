@@ -175,9 +175,11 @@ class GlueCommand(sublime_plugin.TextCommand):
             com_args = shlex.split(user_command) # use shlex for command line handling in ST3 / Py3
         else:
             com_args = user_command.split() # use simple split on whitespace in ST2, Py2.6 does not support unicode in shlex
-
+        # Empty user_command
+        if not com_args:
+            self.view.run_command('glue_writer', {'text': '', 'command': '', 'exit': False})
         # EXIT command
-        if com_args[0] == "exit":
+        elif com_args[0] == "exit":
             self.cleanup() # run the cleanup method
             self.view.run_command('glue_writer', {'text': '', 'command': '', 'exit': True})
         # CD command
@@ -726,6 +728,3 @@ HELP
 
 """
     return help_string
-
-
-
