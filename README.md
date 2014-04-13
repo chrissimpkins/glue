@@ -117,6 +117,10 @@ Usage examples are available in [the documentation](http://gluedocs.readthedocs.
 		<td>reveal current directory (default) or optional path in finder</td>
 	</tr>
 	<tr>
+		<td>glue goto</td>
+		<td>Sublime Text GoTo Anything search</td>
+	</tr>
+	<tr>
 		<td>glue help</td>
 		<td>view help documentation in Glue view</td>
 	</tr>
