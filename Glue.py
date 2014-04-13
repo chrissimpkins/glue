@@ -175,9 +175,9 @@ class GlueCommand(sublime_plugin.TextCommand):
             com_args = shlex.split(user_command) # use shlex for command line handling in ST3 / Py3
         else:
             com_args = user_command.split() # use simple split on whitespace in ST2, Py2.6 does not support unicode in shlex
-        # Empty user_command
+        # Handle missing command when user presses enter/return key
         if not com_args:
-            no_command_msg = "Please enter a command"
+            no_command_msg = "I can only do your bidding if you tell me what to do... Please enter a command."
             self.view.run_command('glue_writer', {'text': no_command_msg, 'command': '', 'exit': False})
         # EXIT command
         elif com_args[0] == "exit":
@@ -186,7 +186,11 @@ class GlueCommand(sublime_plugin.TextCommand):
         # CD command
         elif com_args[0] == "cd":
             if len(com_args) > 1:
-                change_path = com_args[1]
+                # include the ~ user home directory idiom
+                if com_args[1] == "~":
+                    change_path = os.path.expanduser('~')
+                else:
+                    change_path = com_args[1]
                 if os.path.exists(change_path) and os.path.isdir(change_path):
                     os.chdir(change_path)
                     directory_change_abspath = os.getcwd()
