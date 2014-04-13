@@ -177,7 +177,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             com_args = user_command.split() # use simple split on whitespace in ST2, Py2.6 does not support unicode in shlex
         # Handle missing command when user presses enter/return key
         if not com_args:
-            no_command_msg = "I can only do your bidding if you tell me what to do... Please enter a command."
+            no_command_msg = "Please enter a command"
             self.view.run_command('glue_writer', {'text': no_command_msg, 'command': '', 'exit': False})
         # EXIT command
         elif com_args[0] == "exit":
