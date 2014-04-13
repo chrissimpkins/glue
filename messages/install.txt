@@ -65,6 +65,7 @@ COMMANDS
     glue browse <url,path>    Open default browser to <url> or local <path>
     glue clear                Clear the text in the Glue view
     glue finder [path]        Reveal current directory (default) or [path] directory in finder
+    glue goto <query>         Sublime Text Goto Anything search for <query>
     glue help                 Glue help
     glue localhost [port]     Open browser to localhost:8000 or optional localhost:[port]
     glue new                  Create a new Sublime Text buffer
@@ -99,6 +100,7 @@ NAVIGATION
 
   cd <directory path>        Make `directory path` the working directory
   cd ..                      Make parent directory the working directory
+  cd ~                       Make user home directory the working directory
 
   Note that your working directory defaults to the system User directory if you launch Glue from the Command Palette without having an open project file in the editor (or in a clean editor window without an open project).
 

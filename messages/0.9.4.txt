@@ -1,0 +1,34 @@
+       __
+ .-----|  .--.--.-----.
+ |  _  |  |  |  |  -__|
+ |___  |__|_____|_____|
+ |_____|
+
+Copyright 2014 Christopher Simpkins | MIT License
+
+You just got a new tub of Glue!
+
+CHANGELOG
+
+v0.9.4
+
+New Command
+
+○ `glue goto <query>` - use the Sublime Text Goto Anything feature with a Glue command.  Enter part of a filename or directory then submit it.  You will receive a list of matching project files.  In the text input box that opens, add # and additional text to query inside the file, @ and additional text to jump to symbols, and : with additional numeral to jump to a line number in the file.  See the Sublime Text documentation for details on the Goto Anything features.
+
+Updated Command
+
+○ cd command - added the `cd ~` idiom that will allow you to navigate to your user home directory on all platforms (issue #5)
+
+Bug Fixes
+
+○ Fixed exception that was raised when you enter an empty command string (issue #11)
+
+Kudos:
+- Great big thanks to Andy Dai for the pull request that addressed issue #11
+- Thanks to Jwahar Bammi for the request that brought about this new feature (issue #5).
+
+---
+✪ You can view help documentation in Glue with the command `glue help`
+✪ Documentation is available at http://gluedocs.readthedocs.org/
+✪ Report issues at https://github.com/chrissimpkins/glue/issues

@@ -15,9 +15,3 @@ v0.9.2
 Kudos:
 Thanks to Frederico Brigante who brought the Mac OSX issues to my attention over on GitHub!
 
-If you encounter any problems, please submit a new issue on the GitHub repo (link below).
-
----
-✪ You can view help documentation in Glue with the command `glue help`
-✪ Documentation is available at http://gluedocs.readthedocs.org/
-✪ Report issues at https://github.com/chrissimpkins/glue/issues
