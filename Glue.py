@@ -74,7 +74,7 @@ class GlueCommand(sublime_plugin.TextCommand):
 
             #------------------------------------------------------------------------------
             # Establish current buffer / file
-            # 1. if using unsaved buffer (i.e. buffer = 1), set current path to <user-dir>/NEW.glue
+            # 1. if using unsaved buffer (i.e. buffer = 1), set current path to <user-dir>/terminal.glue
             #------------------------------------------------------------------------------
             if st_buffer:
                 self.current_filepath = os.path.join(self.start_dirpath, 'terminal.glue')
