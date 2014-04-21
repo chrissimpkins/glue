@@ -47,7 +47,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             # 3. if file does not exist, make it in current directory if detected, User dir if not
             # 4. if directory exists after above, then chdir into it to establish as working directory
             #------------------------------------------------------------------------------
-            buffer = 0 # flag that indicates use of buffer with unsaved terminal.glue file
+            st_buffer = 0 # flag that indicates use of buffer with unsaved terminal.glue file
             create_file = 0 # flag that indicates a new file should be generated to run the terminal view
             self.current_filepath = self.view.file_name() # file path if file exists and is saved, otherwise None
 
@@ -60,7 +60,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                 else:
                     # set current directory with User directory
                     self.start_dirpath = os.path.expanduser('~')
-                    buffer = 1 # indicate that user is attempting to use an unsaved buffer, do not create new .glue file
+                    st_buffer = 1 # indicate that user is attempting to use an unsaved buffer, do not create new .glue file
 
             if len(self.current_dirpath) == 0:
                 self.current_dirpath = self.start_dirpath # if it hasn't been set yet, set it to the same directory as the start dir
@@ -77,7 +77,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             # Establish current buffer / file
             # 1. if using unsaved buffer (i.e. buffer = 1), set current path to <user-dir>/NEW.glue
             #------------------------------------------------------------------------------
-            if buffer:
+            if st_buffer:
                 self.current_filepath = os.path.join(self.start_dirpath, 'terminal.glue')
             else:
                 if self.current_filepath: # if it is set
@@ -107,7 +107,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                         self.view = self.view.window().new_file()
                         self.view.set_name('terminal.glue')
             else:
-                if buffer:
+                if st_buffer:
                     self.view.set_name('terminal.glue')
                 elif create_file:
                     # confirm that there is not a .glue file in the current directory, open it if there is
@@ -385,7 +385,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                             # if arguments from command, add those in location indicated by the file
                             if len(com_args) > 2:
                                 # arguments were included on the command line, pass them to the user command
-                                arguments =  ' '.join(com_args[2:])
+                                arguments = ' '.join(com_args[2:])
                             else:
                                 # no additional arguments were included so pass empty string if there is an {{args}} tag
                                 arguments = ''
