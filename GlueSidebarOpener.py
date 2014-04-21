@@ -12,14 +12,14 @@ else:
     from GlueIO import FileWriter
 
 class GlueSidebarOpenerCommand(sublime_plugin.WindowCommand):
-    def run(self, paths = []):
+    def run(self, paths=[]):
         path = paths[0] # only use the first of the paths in the passed argument (prevents multiple terminals from opening)
         if os.path.exists(path) and os.path.isfile(path) and path.endswith('.glue'):
             self.erase_existing_glue_file(path) # clear the terminal text in .glue files
             self.open_the_file(path)
             self.window.active_view().run_command('glue')
         elif os.path.exists(path) and os.path.isfile(path):
-            file_path = os.path.join(os.path.dirname(path),'terminal.glue')
+            file_path = os.path.join(os.path.dirname(path), 'terminal.glue')
             FileWriter(file_path).write_utf8(" ")
             self.open_the_file(file_path)
             self.window.active_view().run_command('glue')
