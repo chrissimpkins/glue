@@ -123,7 +123,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             # Launch the Input Panel for User Input - off to the races...
             #------------------------------------------------------------------------------
             self.view.window().show_input_panel(self.ps1 + ' ', '', self.muterun_runner, None, None)
-        except Exception as e:
+        except Exception:
             self.exception_handler()
 
     #------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ class GlueCommand(sublime_plugin.TextCommand):
     def muterun_runner(self, user_command):
         try:
             self.muterun(user_command)
-        except Exception as e:
+        except Exception:
             self.exception_handler(user_command)
 
     #------------------------------------------------------------------------------
