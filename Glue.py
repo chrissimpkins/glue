@@ -5,7 +5,6 @@ import sublime
 import sublime_plugin
 from sys import version_info
 import subprocess
-import sys
 import os
 import threading
 import shlex
