@@ -117,7 +117,6 @@ class GlueCommand(sublime_plugin.TextCommand):
                         self.view = self.view.window().new_file() # create a new file at the file path established above
                         self.view.set_name('terminal.glue')
 
-
             #------------------------------------------------------------------------------
             # Launch the Input Panel for User Input - off to the races...
             #------------------------------------------------------------------------------
@@ -139,7 +138,7 @@ class GlueCommand(sublime_plugin.TextCommand):
     # [ exception_handler ] - print stack trace for raised exceptions from Glue plugin in the editor view
     #------------------------------------------------------------------------------
     def exception_handler(self, user_command=''):
-        glue_exc_message = "Glue encountered an error.  Please report this as a new issue on the GitHub repository.  Here is the stack trace:"
+        glue_exc_message = "Glue encountered an error.  Please report this as a new issue on the GitHub repository.  Here is the stack trace:\n\n"
         if version_info[0] == 2:
             exc_string = StringIO.StringIO()
         else:
