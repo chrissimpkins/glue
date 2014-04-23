@@ -95,7 +95,7 @@ and create new files with:
 
 Glue includes its own set of commands to perform common tasks.  You can extend these with aliases (see [information below](https://github.com/chrissimpkins/glue#extend-sublime-text-with-glue-extensions)).
 
-Usage examples are available in [the documentation](http://gluedocs.readthedocs.org/en/latest/commands.html).
+Usage examples with available command arguments are in [the documentation](http://gluedocs.readthedocs.org/en/latest/commands.html).
 
 <table>
 	<tr><th>Command</th><th>Description</th></tr>
