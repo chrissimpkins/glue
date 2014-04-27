@@ -327,6 +327,27 @@ class GlueCommand(sublime_plugin.TextCommand):
                         # if there is a self.userpath that is set (user set in settings, previously set above) then set Python environ PATH string
                         the_path = self.userpath
                     self.view.run_command('glue_writer', {'text': the_path + '\n', 'command': glue_command, 'exit': False})
+                # TEMPLATE command
+                elif com_args[1] == "template":
+                    if len(com_args) > 2:
+                        template_name = ""
+                        template_filename = ""
+                        template_multi = False
+                        # test for the flag and name option in the user command
+                        for argument in com_args[2:]: # only test the arguments after the 'template' subcommand
+                            if "--multi" in argument:
+                                template_multi = True # user indicated that the file will specify multiple file paths
+                            elif argument.startswith('--name='):
+                                name_list = argument.split('=')
+                                template_filename = name_list[1] # the user assigned file write name of the file
+                            else:
+                                template_name = argument # if it is not one of the above options, then it is the requested template name
+                        print_string = template_name + " " + template_filename + " " + str(template_multi)
+                        self.view.run_command('glue_writer', {'text': print_string, 'command': glue_command, 'exit': False})
+                    else:
+                        # user did not enter a template name
+                        template_err_msg = "Please enter a template name after your command.\n"
+                        self.view.run_command('glue_writer', {'text': template_err_msg, 'command': glue_command, 'exit': False})
                 # USER command
                 elif com_args[1] == "user":
                     uc_file_path = os.path.join(sublime.packages_path(), 'Glue-Commands', 'glue.json')
