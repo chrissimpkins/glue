@@ -335,18 +335,31 @@ class GlueCommand(sublime_plugin.TextCommand):
                         template_multi = False
                         # test for the flag and name option in the user command
                         for argument in com_args[2:]: # only test the arguments after the 'template' subcommand
-                            if "--multi" in argument:
+                            if "--multi" in argument or "-m" in argument:
                                 template_multi = True # user indicated that the file will specify multiple file paths
                             elif argument.startswith('--name='):
                                 name_list = argument.split('=')
                                 template_filename = name_list[1] # the user assigned file write name of the file
                             else:
                                 template_name = argument # if it is not one of the above options, then it is the requested template name
+
+                        if len(template_name) > 0:
+                            template_name = template_name + ".glue-template"
+                            template_path = os.path.join(sublime.packages_path(), 'Glue-Templates', template_name)
+                        else:
+                            # user did not enter a template name
+                            template_err_msg = "Please enter a template name in your command.\nUsage: glue template [--name=] [-m|--multi] <template-name>"
+                            self.view.run_command('glue_writer', {'text': template_err_msg, 'command': glue_command, 'exit': False})
+                        ## TODO:
+                        ##   - single file templates
+                        ##   - multi-file templates with [read path]:::[write path] strings
+                        ##   - support for http reads?
+                        ##   - support for git reads?
                         print_string = template_name + " " + template_filename + " " + str(template_multi)
                         self.view.run_command('glue_writer', {'text': print_string, 'command': glue_command, 'exit': False})
                     else:
                         # user did not enter a template name
-                        template_err_msg = "Please enter a template name after your command.\n"
+                        template_err_msg = "Please enter a template name in your command.\nUsage: glue template [--name=] [-m|--multi] <template-name>"
                         self.view.run_command('glue_writer', {'text': template_err_msg, 'command': glue_command, 'exit': False})
                 # USER command
                 elif com_args[1] == "user":
