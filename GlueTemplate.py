@@ -13,7 +13,7 @@ class TemplateCommander(object):
         self.current_directory = current_directory # current working directory
         self.templates_directory = templates_directory # the absolute path to the Glue-Templates directory
         self.response_code = -1
-        self.response_message = ""
+        self.response_message = "" # response message for the calling code, set based upon result of the logic in this module
 
     def run(self):
         # create test file paths (either a .glue-template or .glue-paths file)
@@ -52,7 +52,6 @@ class TemplateCommander(object):
                 self.response_message = "There is no " + glue_template_name + " or " + glue_paths_name + " file in your Glue-Templates directory. Please add the file to the directory or request a different template file.\n"
                 return 1 # abort
 
-        #
 
     def _get_local_template(self):
         pass

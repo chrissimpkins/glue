@@ -331,25 +331,29 @@ class GlueCommand(sublime_plugin.TextCommand):
                 elif com_args[1] == "template":
                     if len(com_args) > 2:
                         template_name = ""
-                        template_filename = ""
+                        outfile_name = ""
 
-                        # test for the flag and name option in the user command
+                        # test for the outfile name option in the user command
                         for argument in com_args[2:]: # only test the arguments after the 'template' subcommand
-                            if argument.startswith('--name='):
+                            if argument.startswith('--out='):
                                 name_list = argument.split('=') #split into list on the = symbol
                                 outfile_name = name_list[1] # the user assigned out file write name is in second position in list
                             else:
                                 template_name = argument # if it is not one of the above options, then it is the requested template name
 
-                        if len(template_name) > 0:
+                        if len(template_name) > 0: # received a template name to attempt to find
                             template_directory = os.path.join(sublime.packages_path(), 'Glue-Templates') #path to the templates directory
-                            # test for existence of the Glue-Templates directory and abort early if not present
+                            # test for existence of the Glue-Templates directory in Sublime Packages directory and abort early if not present
                             if os.path.exists(template_directory) and os.path.isdir(template_directory):
                                 # the Glue-Templates directory is present, attempt to find template and execute template write(s)
                                 from GlueTemplate import TemplateCommander
                                 try:
                                     tc = TemplateCommander(template_name, outfile_name, self.current_dirpath, template_directory)
                                     tc.run()
+
+                                    ## TODO BEGIN WITH TEST OF THE RETURNED MESSAGES
+
+                                    # print the returned message to the Glue view - includes errors and success messages
                                     self.view.run_command('glue_writer', {'text': tc.response_message, 'command': glue_command, 'exit': False})
                                 except Exception:
                                     self.exception_handler(glue_command)
@@ -357,16 +361,14 @@ class GlueCommand(sublime_plugin.TextCommand):
                                 # abort, template file cannot exist on that path
                                 template_dir_error_msg = "The Glue-Templates directory is not in your Sublime Text Packages directory.  Please create the directory and add your template file to it.\n"
                                 self.view.run_command('glue_writer', {'text': template_dir_error_msg, 'command': glue_command, 'exit': False})
+                                return 1 #abort
                         else:
                             # user did not enter a template name
-                            template_err_msg = "Please enter a template name in your command.\nUsage: glue template [--name=] <template-name>"
+                            template_err_msg = "Please enter a template name in your command.\nUsage: glue template [--out=] <template-name>"
                             self.view.run_command('glue_writer', {'text': template_err_msg, 'command': glue_command, 'exit': False})
-
-                        print_string = template_path + " " + template_filename + " " + self.current_dirpath
-                        self.view.run_command('glue_writer', {'text': print_string, 'command': glue_command, 'exit': False})
                     else:
                         # user did not enter a template name
-                        template_err_msg = "Please enter a template name in your command.\nUsage: glue template [--name=] <template-name>"
+                        template_err_msg = "Please enter a template name in your command.\nUsage: glue template [--out=] <template-name>"
                         self.view.run_command('glue_writer', {'text': template_err_msg, 'command': glue_command, 'exit': False})
                 # USER command
                 elif com_args[1] == "user":
@@ -652,6 +654,12 @@ class GlueCommand(sublime_plugin.TextCommand):
         else:
             with self.attr_lock:
                 print(self.stderr)
+
+    #------------------------------------------------------------------------------
+    # [ dialog_message method ] - display a dialog with text
+    #------------------------------------------------------------------------------
+    def dialog_message(self, message_text):
+        sublime.error_message(message_text)
 
     #------------------------------------------------------------------------------
     # [ xitems iterator ] - uses appropriate method from Py2 and Py3 to iterate through dict items
