@@ -341,7 +341,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                             else:
                                 template_name = argument # if it is not one of the above options, then it is the requested template name
 
-                        if len(template_name) > 0: # received a template name to attempt to find
+                        if len(template_name) > 0: # received a template name to locate
                             template_directory = os.path.join(sublime.packages_path(), 'Glue-Templates') #path to the templates directory
                             # test for existence of the Glue-Templates directory in Sublime Packages directory and abort early if not present
                             if os.path.exists(template_directory) and os.path.isdir(template_directory):
