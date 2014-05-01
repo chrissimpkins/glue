@@ -16,7 +16,21 @@ class TemplateCommander(object):
         self.response_message = "" # response message for the calling code, set based upon result of the logic in this module
 
     def run(self):
-        # the execution depends upon whether a .glue-template or .glue-paths file is being used
+        # initial logic, distinguish remote from local file request
+        if self.template_name.startswith('http://') or self.template_name.startswith('https://'):
+            local_key_path = "" # the path to the template key or empty string if not present (the key is optional)
+            test_key_path = os.path.join(self.current_directory, 'key.glue') # the location to search for the template key (the key is optional)
+            if self._path_exists(test_key_path):
+                local_key_path = test_key_path # assign the test path to the local key path if it is present, otherwise remains empty string
+            # instantiate a RemoteTemplate to pull the text and perform the replacement
+            remote_template = RemoteTemplate(self.template_name, local_key_path)
+            remote_template.pull_file()
+            remote_template.perform_replacement()
+
+        else:
+            pass # LOCAL FILES
+
+
         if self.template_name.endswith('.glue-template'): # user can be explicit about whether it is a .glue-template or .glue-paths file (if same file name)
             template_test_path = os.path.join(self.templates_directory, self.template_name)
             key_test_path = os.path.join(self.current_directory, 'key.glue')
@@ -68,18 +82,6 @@ class TemplateCommander(object):
                 return 1 # abort
 
 
-    def _get_local_template(self, template_path):
-        pass
-
-    def _get_remote_template(self):
-        pass
-
-    def _perform_text_replacements(self, template_text):
-        pass
-
-    def _write_template(self, template_text, outfile_path):
-        pass
-
     #------------------------------------------------------------------------------
     # [ _path_exists method ] - test for existence of a file on the `file_path` argument
     #------------------------------------------------------------------------------
@@ -88,3 +90,29 @@ class TemplateCommander(object):
             return True
         else:
             return False
+
+
+class LocalTemplate(object):
+    def __init__(self, local_template_path="", local_key_path=""):
+        self.local_template_path = local_template_path
+        self.local_key_path = local_key_path
+        self.template_text = "" # attribute that holds the final template text
+
+
+class RemoteTemplate(object):
+    def __init__(self, remote_template_url="", local_key_path=""):
+        self.remote_template_url = remote_template_url
+        self.local_key_path = local_key_path
+        self.template_text = "" # attribute that holds the final template text
+
+    ## TODO determine .glue-template vs glue-paths, then handle accordingly
+
+    def pull_file(self):
+        pass
+
+    def perform_replacement(self):
+        pass
+
+
+
+
