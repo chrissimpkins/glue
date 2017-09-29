@@ -1,3 +1,6 @@
+No longer under active development.
+===================================
+
 Glue
 ====
 
